@@ -3,8 +3,8 @@ package models
 type Category struct {
 	Id        string `json:"id"`
 	Name      string `json:"name"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+	CreatedAt string `json:"created_at,omitempty"`
+	UpdatedAt string `json:"updated_at,omitempty"`
 }
 
 type CreateCategory struct {

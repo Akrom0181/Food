@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- 1. Create tables that have no dependencies
 CREATE TABLE IF NOT EXISTS "user" (
   id UUID PRIMARY KEY,
