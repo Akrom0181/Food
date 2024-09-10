@@ -63,7 +63,7 @@ func Load() Config {
 	config.Environment = cast.ToString(getOrReturnDefaultValue("ENVIRONMENT", DebugMode))
 	config.Version = cast.ToString(getOrReturnDefaultValue("VERSION", "1.0"))
 
-	config.HTTPPort = cast.ToString(getOrReturnDefaultValue("HTTP_PORT", ":8080"))
+	config.HTTPPort = cast.ToString(getOrReturnDefaultValue("HTTP_PORT", ":9090"))
 	config.HTTPScheme = cast.ToString(getOrReturnDefaultValue("HTTP_SCHEME", "http"))
 
 	config.PostgresHost = cast.ToString(getOrReturnDefaultValue("POSTGRES_HOST", "dpg-crg01paj1k6c7399vc90-a.ohio-postgres.render.com"))
