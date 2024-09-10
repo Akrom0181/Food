@@ -530,6 +530,49 @@ paths:
       summary: delete a category by its id
       tags:
       - category
+  /food/api/v1/deletefile:
+    delete:
+      consumes:
+      - multipart/form-data
+      description: Delete File
+      operationId: delete_file
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Success Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Delete File
+      tags:
+      - File
   /food/api/v1/deleteproduct/{id}:
     delete:
       consumes:
@@ -1138,6 +1181,52 @@ paths:
       summary: Update User
       tags:
       - user
+  /food/api/v1/uploadfiles:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload Multiple Files
+      operationId: upload_multiple_files
+      parameters:
+      - collectionFormat: csv
+        description: File to upload
+        in: formData
+        items:
+          type: file
+        name: file
+        required: true
+        type: array
+      responses:
+        "200":
+          description: Success Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Upload Multiple Files
+      tags:
+      - File
   /food/api/v1/user/login:
     post:
       consumes:

@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"fmt"
 	"food/config"
 	"food/storage"
 	"time"
@@ -14,9 +15,20 @@ type Store struct {
 }
 
 func New(cfg config.Config) storage.IRedisStorage {
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: cfg.RedisHost + ":" + cfg.RedisPort,
-	})
+	var redisClient *redis.Client
+
+	// Check if Redis URL is provided
+	if cfg.RedisURL != "" {
+		opt, err := redis.ParseURL(cfg.RedisURL)
+		if err != nil {
+			panic(fmt.Sprintf("Invalid Redis URL: %v", err))
+		}
+		redisClient = redis.NewClient(opt)
+	} else {
+		redisClient = redis.NewClient(&redis.Options{
+			Addr: cfg.RedisHost + ":" + cfg.RedisPort,
+		})
+	}
 
 	return Store{
 		db: redisClient,

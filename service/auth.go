@@ -68,7 +68,7 @@ func (a authService) UserRegister(ctx context.Context, loginRequest models.UserR
 
 	err := a.redis.SetX(ctx, loginRequest.Mail, otpCode, time.Minute*2)
 	if err != nil {
-		a.log.Error("error while setting otpCode to redis userer register", logger.Error(err))
+		a.log.Error("error while setting otpCode to redis user register", logger.Error(err))
 		return err
 	}
 
