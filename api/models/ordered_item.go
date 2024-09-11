@@ -2,10 +2,9 @@ package models
 
 type OrderItem struct {
 	Id        string  `json:"id"`
-	OrderId   string  `json:"order_id"`
 	ProductId string  `json:"product_id"`
+	OrderId   string  `json:"order_id"`
 	Quantity  int     `json:"quantity"`
-	Options   string  `json:"options"`
 	Price     float64 `json:"price"`
 	CreatedAt string  `json:"created_at"`
 	UpdatedAt string  `json:"updated_at"`
@@ -13,8 +12,8 @@ type OrderItem struct {
 
 type CreateOrderItem struct {
 	ProductId string  `json:"product_id"`
+	OrderId   string  `json:"order_id"`
 	Quantity  int     `json:"quantity"`
-	Options   string  `json:"options"`
 	Price     float64 `json:"price"`
 }
 
@@ -30,7 +29,6 @@ type GetOrderItem struct {
 	OrderId   string  `json:"order_id"`
 	ProductId string  `json:"product_id"`
 	Quantity  int     `json:"quantity"`
-	Options   string  `json:"options"`
 	Price     float64 `json:"price"`
 }
 

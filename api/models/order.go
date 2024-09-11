@@ -1,34 +1,37 @@
 package models
 
 type Order struct {
-	Id         string  `json:"id"`
-	UserId     string  `json:"user_id"`
-	ProductId  string  `json:"product_id"`
-	TotalPrice float64 `json:"total_price"`
-	Status     string  `json:"status"`
-	CreatedAt  string  `json:"created_at"`
-	UpdatedAt  string  `json:"updated_at"`
+	Id          string  `json:"id"`
+	UserId      string  `json:"user_id"`
+	OrderItemId string  `json:"product_id"`
+	TotalPrice  float64 `json:"total_price"`
+	Status      string  `json:"status"`
+	CreatedAt   string  `json:"created_at"`
+	UpdatedAt   string  `json:"updated_at"`
 }
 
 type CreateOrder struct {
-	UserId     string  `json:"user_id"`
-	TotalPrice float64 `json:"total_price"`
-	Status     string  `json:"status"`
+	UserId      string  `json:"user_id"`
+	OrderItemId string  `json:"orderitem_id"`
+	TotalPrice  float64 `json:"total_price"`
+	Status      string  `json:"status"`
 }
 
 type UpdateOrder struct {
-	UserId     string  `json:"user_id"`
-	TotalPrice float64 `json:"total_price"`
-	Status     string  `json:"status"`
+	UserId      string  `json:"user_id"`
+	OrderItemId string  `json:"orderitem_id"`
+	TotalPrice  float64 `json:"total_price"`
+	Status      string  `json:"status"`
 }
 
 type GetOrder struct {
-	Id         string  `json:"id"`
-	UserId     string  `json:"user_id"`
-	TotalPrice float64 `json:"total_price"`
-	Status     string  `json:"status"`
-	CreatedAt  string  `json:"created_at"`
-	UpdatedAt  string  `json:"updated_at"`
+	Id          string  `json:"id"`
+	UserId      string  `json:"user_id"`
+	OrderItemId string  `json:"orderitem_id"`
+	TotalPrice  float64 `json:"total_price"`
+	Status      string  `json:"status"`
+	CreatedAt   string  `json:"created_at"`
+	UpdatedAt   string  `json:"updated_at"`
 }
 
 type GetAllOrdersRequest struct {

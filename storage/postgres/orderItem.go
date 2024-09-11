@@ -39,7 +39,6 @@ func (o *OrderItemRepo) Create(ctx context.Context, orderItem *models.OrderItem)
 
 	_, err := o.db.Exec(context.Background(), query,
 		id.String(),
-		orderItem.OrderId,
 		orderItem.ProductId,
 		orderItem.Quantity,
 		orderItem.Price,

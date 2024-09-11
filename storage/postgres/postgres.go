@@ -19,6 +19,7 @@ type Store struct {
 	user               *UserRepo
 	// auth               *AuthRepo
 	branch             *BranchRepo
+	banner			   *BannerRepo
 	category           *CategoryRepo
 	orderItem          *OrderItemRepo
 	order              *OrderRepo
@@ -103,6 +104,16 @@ func (s *Store) Branch() storage.IBranchStorage {
 		}
 	}
 	return s.branch
+}
+
+func (s *Store) Banner() storage.IBannerStorage {
+	if s.banner == nil {
+        s.banner = &BannerRepo{
+            db:  s.db,
+            log: s.log,
+        }
+    }
+    return s.banner
 }
 
 func (s *Store) Category() storage.ICategoryStorage {

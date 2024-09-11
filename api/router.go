@@ -42,6 +42,18 @@ func NewApi(r *gin.Engine, cfg *config.Config, storage storage.IStorage, logger 
 	v1.PUT("/category/:id", h.UpdateCategory)
 	v1.DELETE("/deletecategory", h.DeleteCustomer)
 
+	v1.POST("/createorder", h.CreateOrder)
+	v1.GET("/getbyidorder/:id", h.GetOrderByID)
+	v1.GET("/getallorders", h.GetAllOrders)
+	v1.PUT("/updateorder", h.UpdateOrder)
+	v1.DELETE("/deleteorder/:id", h.DeleteOrder)
+
+	v1.POST("createorderitem", h.CreateOrderItem)
+	v1.GET("/getbyorderitem/:id", h.GetOrderItemByID)
+	v1.GET("/getallorderitems", h.GetAllOrderItems)
+	v1.PUT("/updateorderitem", h.UpdateOrderItem)
+	v1.DELETE("deleteorderitem", h.DeleteOrderItem)
+
 	v1.POST("/createuser", h.CreateUser)
 	v1.GET("/getbyiduser/:id", h.GetUserByID)
 	v1.GET("/getallusers", h.GetAllUsers)
@@ -60,20 +72,9 @@ func NewApi(r *gin.Engine, cfg *config.Config, storage storage.IStorage, logger 
 	v1.PUT("/updatebranch/:id", h.UpdateBranch)
 	v1.DELETE("/deletebranch/:id", h.DeleteBranch)
 
-	// v1.POST("/createorder", h.CreateOrder)
-	// v1.GET("/getorder/:id", h.GetOrderByID)
-	// v1.GET("/getallorders", h.GetAllOrders)
-	// v1.PUT("/updateorder/:id", h.UpdateOrder)
-	// v1.DELETE("/deleteorder/:id", h.DeleteOrder)
-
-	// v1.POST("/product", h.CreateProduct)
-	// v1.GET("/product/:id", h.GetByIdProduct)
-	// v1.GET("/product", h.GetListProduct)
-	// v1.PUT("/product/:id", h.UpdateProduct)
-	// v1.DELETE("/product/:id", h.DeleteProduct)
-
-	// v1.POST("upload-files", h.UploadFiles)
-	// v1.DELETE("delete-file", h.DeleteFile)
+	v1.POST("/createbanner", h.CreateBanner)
+	v1.GET("/getallbanners", h.GetAllBanners)
+	v1.DELETE("/deletebanner", h.DeleteBanner)
 
 	url := ginSwagger.URL("swagger/doc.json")
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))

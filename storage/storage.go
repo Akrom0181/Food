@@ -11,6 +11,7 @@ type IStorage interface {
 	// Auth() IAuthStorage
 	User() IUserStorage
 	Branch() IBranchStorage
+	Banner() IBannerStorage
 	Category() ICategoryStorage
 	Product() IProductStorage
 	Order() IOrderStorage
@@ -30,10 +31,11 @@ type IUserStorage interface {
 	GetByLogin(ctx context.Context, login string) (models.User, error)
 }
 
-// type IAuthStorage interface {
-// 	UserRegister(ctx context.Context, loginRequest models.UserRegisterRequest) error
-// 	UserRegisterConfirm(ctx context.Context, req models.UserRegisterConfRequest) (models.UserLoginResponse, error)
-// }
+type IBannerStorage interface {
+	Create(context.Context, *models.Banner) (*models.Banner, error)
+	GetAll(ctx context.Context, request *models.GetAllBannerRequest) (*models.GetAllBannerResponse, error)
+	Delete(ctx context.Context, id string) error
+}
 
 type IBranchStorage interface {
 	Create(ctx context.Context, branch *models.Branch) (*models.Branch, error)
@@ -104,3 +106,8 @@ type IRedisStorage interface {
 	Get(ctx context.Context, key string) (interface{}, error)
 	Del(ctx context.Context, key string) error
 }
+
+// type IAuthStorage interface {
+// 	UserRegister(ctx context.Context, loginRequest models.UserRegisterRequest) error
+// 	UserRegisterConfirm(ctx context.Context, req models.UserRegisterConfRequest) (models.UserLoginResponse, error)
+// }
