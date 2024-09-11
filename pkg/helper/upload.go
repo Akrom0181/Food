@@ -62,9 +62,11 @@ func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, erro
 		}
 		writer.Close()
 
+		// Encode the filename to handle spaces and special characters
 		encodedFileName := url.PathEscape(fileName)
-		fileURL := fmt.Sprintf("https://firebasestorage.googleapis.com/v0/b/shashlikuz-7b2ca.appspot.com//o/%s?alt=media&token=%s", encodedFileName, id)
-								
+		// Corrected URL
+		fileURL := fmt.Sprintf("https://firebasestorage.googleapis.com/v0/b/shashlikuz-7b2ca.appspot.com/o/%s?alt=media&token=%s", encodedFileName, id)
+
 		resp.Url = append(resp.Url, &models.Url{
 			Id:  id,
 			Url: fileURL,
@@ -78,13 +80,13 @@ func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, erro
 func UploadFile(file *os.File) (*models.MultipleFileUploadResponse, error) {
 	var resp models.MultipleFileUploadResponse
 
+	// Generate a UUID for the token
 	id := uuid.New().String()
 
 	// Initialize Firebase App with service account key
 	opt := option.WithCredentialsFile("serviceAccountKey.json")
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
-		log.Println(err.Error())
 		return nil, err
 	}
 
@@ -93,48 +95,31 @@ func UploadFile(file *os.File) (*models.MultipleFileUploadResponse, error) {
 		return nil, err
 	}
 
+	// Get the bucket handle
 	bucketHandle, err := client.Bucket("shashlikuz-7b2ca.appspot.com")
 	if err != nil {
 		return nil, err
 	}
 
-	// Use the original file name
-	fileName := file.Name()
+	// Extract only the base name of the file to avoid including the path
+	fileName := filepath.Base(file.Name())
 
-	// Create a temporary file
-	tempFile, err := os.Create(fileName)
-	if err != nil {
-		return nil, err
-	}
-	defer tempFile.Close()
-
-	_, err = io.Copy(tempFile, file)
-	if err != nil {
-		return nil, err
-	}
-
-	// Open the temporary file for reading
-	f, err := os.Open(tempFile.Name())
-	if err != nil {
-		return nil, err
-	}
-	defer os.Remove(tempFile.Name())
-
-	// Upload the file to Firebase Storage
+	// Upload the file to Firebase Storage directly
 	objectHandle := bucketHandle.Object(fileName)
 	writer := objectHandle.NewWriter(context.Background())
 	writer.ObjectAttrs.Metadata = map[string]string{"firebaseStorageDownloadTokens": id}
 
 	defer writer.Close()
 
-	if _, err := io.Copy(writer, f); err != nil {
+	// Copy the file data directly to Firebase
+	if _, err := io.Copy(writer, file); err != nil {
 		return nil, err
 	}
 
-	// Encode the file name to handle spaces and special characters
+	// Encode the file name to handle special characters
 	encodedFileName := url.PathEscape(fileName)
 
-	// Generate the public URL
+	// Generate the public URL for the file
 	fileURL := fmt.Sprintf("https://firebasestorage.googleapis.com/v0/b/shashlikuz-7b2ca.appspot.com/o/%s?alt=media&token=%s", encodedFileName, id)
 
 	// Add the URL to the response
@@ -142,7 +127,8 @@ func UploadFile(file *os.File) (*models.MultipleFileUploadResponse, error) {
 		Id:  id,
 		Url: fileURL,
 	})
-										// gs://shashlikuz-7b2ca.appspot.com
+
+	// Return the response with the uploaded file's URL
 	return &resp, nil
 }
 
