@@ -30,9 +30,11 @@ CREATE TABLE IF NOT EXISTS "product" (
   updated_at TIMESTAMP DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS "orderitem" (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+CREATE TABLE IF NOT EXISTS "orderiteam" (
+  id UUID PRIMARY KEY,
+  order_id UUID NOT NULL REFERENCES "order"(id),
   product_id UUID NOT NULL REFERENCES "product"(id),
+  total DECIMAL(10, 2) NOT NULL,
   quantity INT NOT NULL,
   price DECIMAL NOT NULL,
   created_at TIMESTAMP DEFAULT now(),
@@ -41,17 +43,38 @@ CREATE TABLE IF NOT EXISTS "orderitem" (
 
 -- 2. Create tables that reference the above tables
 CREATE TABLE IF NOT EXISTS "order" (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES "user"(id),
-  orderitem_id UUID NOT NULL REFERENCES "orderitem"(id),
   total_price DECIMAL NOT NULL,
-  status VARCHAR NOT NULL CHECK (status IN ('pending', 'confirmed', 'picked_up', 'delivered')),
+  status VARCHAR NOT NULL CHECK (status IN ('pending', 'confirmed', 'picked_up', 'delivered')) DEFAULT 'pending',
   created_at TIMESTAMP DEFAULT now(),
   updated_at TIMESTAMP DEFAULT now()
 );
 
+-- CREATE TABLE IF NOT EXISTS "orders" (
+--     "id" UUID PRIMARY KEY,
+--     "total_price" DECIMAL(10, 2) NOT NULL,  -- Buyurtmaning umumiy narxi
+--     "status" order_status DEFAULT 'yangi',  -- Buyurtma holati uchun enum
+--     "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Buyurtma yaratilgan vaqt
+--     "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Buyurtma yangilangan vaqt
+--     "customer_id" UUID,  -- Foydalanuvchi jadvaliga bog'lanadi
+--     FOREIGN KEY ("customer_id") REFERENCES "customer"("id")  -- Foydalanuvchi jadvaliga bog'lanadi
+-- );
+
+
+-- CREATE TABLE IF NOT EXISTS "order_items" (
+--     "id" UUID PRIMARY KEY,
+--     "quantity" INT NOT NULL,  -- Mahsulot miqdori
+--     "price" DECIMAL(10, 2) NOT NULL,  -- Mahsulotning bitta narxi
+--     "total" DECIMAL(10, 2) GENERATED ALWAYS AS (price * quantity) STORED,  -- Jami narx
+--     "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Mahsulot qo'shilgan vaqt
+--     "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Ma'lumot yangilangan vaqt
+--     "order_id" REFERENCES "orders"("id"),  -- Buyurtma bilan bog'lanadi
+--     "product_id" REFERENCES "product"("id")  -- Mahsulot bilan bog'lanadi
+-- );
+
 CREATE TABLE IF NOT EXISTS "payment" (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT,
   user_id UUID NOT NULL REFERENCES "user"(id),
   order_id UUID NOT NULL REFERENCES "order"(id),
   is_paid BOOLEAN NOT NULL DEFAULT false,
@@ -60,7 +83,7 @@ CREATE TABLE IF NOT EXISTS "payment" (
 );
 
 CREATE TABLE IF NOT EXISTS "courierassignment" (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT,
   order_id UUID NOT NULL REFERENCES "order"(id),
   courier_id UUID NOT NULL REFERENCES "user"(id),
   status VARCHAR NOT NULL CHECK (status IN ('assigned', 'picked_up', 'en_route', 'delivered', 'payment_collected')),
@@ -77,7 +100,7 @@ CREATE TABLE IF NOT EXISTS "notification" (
 );
 
 CREATE TABLE IF NOT EXISTS "deliveryhistory" (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT,
   courier_id UUID NOT NULL REFERENCES "user"(id),
   order_id UUID NOT NULL REFERENCES "order"(id),
   earnings DECIMAL NOT NULL,
@@ -85,7 +108,7 @@ CREATE TABLE IF NOT EXISTS "deliveryhistory" (
 );
 
 CREATE TABLE IF NOT EXISTS "locations" (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT,
   user_id UUID REFERENCES "user"(id),
   address VARCHAR,
   latitude DECIMAL(10, 8),
@@ -119,7 +142,7 @@ CREATE TABLE IF NOT EXISTS "banner" (
 );
 
 CREATE TABLE IF NOT EXISTS "branch" (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT,
   name VARCHAR NOT NULL,
   address VARCHAR NOT NULL,
   latitude DECIMAL(10, 8),

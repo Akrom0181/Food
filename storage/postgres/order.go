@@ -23,169 +23,145 @@ func NewOrder(db *pgxpool.Pool, log logger.LoggerI) OrderRepo {
 	}
 }
 
-// Create method to insert a new order into the database
-func (o *OrderRepo) Create(ctx context.Context, order *models.Order) (*models.Order, error) {
-	id := uuid.New()
-	query := `INSERT INTO "order" (
-		id, user_id, orderitem_id, total_price, status, created_at, updated_at
-	) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-	RETURNING created_at, updated_at`
-
-	// Execute query and get the created_at and updated_at from the DB
-	var createdAt, updatedAt string
-	err := o.db.QueryRow(context.Background(), query,
-		id.String(),
-		order.UserId,
-		order.OrderItemId,
-		order.TotalPrice,
-		order.Status,
-	).Scan(&createdAt, &updatedAt)
-
+func (o *OrderRepo) Create(ctx context.Context, order *models.OrderCreateRequest) (*models.OrderCreateRequest, error) {
+	tx, err := o.db.Begin(context.Background())
 	if err != nil {
-		o.log.Error("error while creating order in storage: " + err.Error())
-		return &models.Order{}, err
+		return &models.OrderCreateRequest{}, err
 	}
+	defer func() {
+		if err != nil {
+			tx.Rollback(context.Background())
+		}
+	}()
 
-	return &models.Order{
-		Id:          id.String(),
-		UserId:      order.UserId,
-		OrderItemId: order.OrderItemId,
-		TotalPrice:  order.TotalPrice,
-		Status:      order.Status,
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
-	}, nil
-}
+	// Generate a new UUID for the order
+	orderId := uuid.New().String()
 
-func (o *OrderRepo) Update(ctx context.Context, order *models.Order) (*models.Order, error) {
-	query := `UPDATE "order" SET 
-		user_id = $1, orderitem_id = $2, total_price = $3, status = $4, updated_at = CURRENT_TIMESTAMP
-		WHERE id = $5
-		RETURNING updated_at`
-
-	var updatedAt string
-	err := o.db.QueryRow(context.Background(), query,
-		order.UserId,
-		order.OrderItemId,
-		order.TotalPrice,
-		order.Status,
-		order.Id,
-	).Scan(&updatedAt)
-
-	if err != nil {
-		o.log.Error("error while updating order in storage: " + err.Error())
-		return &models.Order{}, err
-	}
-
-	return &models.Order{
-		Id:          order.Id,
-		UserId:      order.UserId,
-		OrderItemId: order.OrderItemId,
-		TotalPrice:  order.TotalPrice,
-		Status:      order.Status,
-		CreatedAt:   order.CreatedAt, 
-		UpdatedAt:   updatedAt,
-	}, nil
-}
-
-func (o *OrderRepo) GetAll(ctx context.Context, req *models.GetAllOrdersRequest) (*models.GetAllOrdersResponse, error) {
-	resp := &models.GetAllOrdersResponse{}
-	offset := (req.Page - 1) * req.Limit
-
-	// Build query with optional search
-	filter := ""
-	if req.Search != "" {
-		filter += fmt.Sprintf(` WHERE (user_id ILIKE '%%%v%%' OR status ILIKE '%%%v%%') `, req.Search, req.Search)
-	}
-	filter += fmt.Sprintf(" OFFSET %v LIMIT %v", offset, req.Limit)
-
-	rows, err := o.db.Query(context.Background(), `SELECT count(id) OVER(), 
-		id, user_id, orderitem_id, total_price, status, created_at, updated_at
-		FROM "order"`+filter)
-
-	if err != nil {
-		o.log.Error("error while getting all orders in storage: " + err.Error())
-		return resp, err
-	}
-
-	for rows.Next() {
-		var (
-			order       = models.Order{}
-			userID      sql.NullString
-			orderItemId sql.NullString
-			totalPrice  sql.NullFloat64
-			status      sql.NullString
-			createdAt   sql.NullString
-			updatedAt   sql.NullString
-		)
-		if err := rows.Scan(
-			&resp.Count,
-			&order.Id,
-			&userID,
-			&orderItemId,
-			&totalPrice,
-			&status,
-			&createdAt,
-			&updatedAt); err != nil {
-			return resp, err
+	var totalSum float64
+	for i, item := range order.Items {
+		if item.Quantity <= 0 {
+			return &models.OrderCreateRequest{}, fmt.Errorf("quantity must be greater than 0 for product %s", item.ProductId)
 		}
 
-		resp.Orders = append(resp.Orders, models.Order{
-			Id:          order.Id,
-			UserId:      userID.String,
-			OrderItemId: orderItemId.String,
-			TotalPrice:  totalPrice.Float64,
-			Status:      status.String,
-			CreatedAt:   createdAt.String,
-			UpdatedAt:   updatedAt.String,
+		var productPrice float64
+		productQuery := `SELECT price FROM "product" WHERE id = $1`
+		err = o.db.QueryRow(context.Background(), productQuery, item.ProductId).Scan(&productPrice)
+		if err != nil {
+			return &models.OrderCreateRequest{}, fmt.Errorf("failed to retrieve price for product %s: %w", item.ProductId, err)
+		}
+
+		order.Items[i].Price = productPrice
+		order.Items[i].TotalPrice = productPrice * float64(item.Quantity)
+		totalSum += order.Items[i].TotalPrice
+		order.Items[i].Id = item.ProductId
+		order.Items[i].OrderId = orderId
+		order.Items[i].CreatedAt = item.CreatedAt
+	}
+
+	// Insert the order
+	orderQuery := `INSERT INTO "order" (id, user_id, total_price, created_at, updated_at) 
+					  VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id`
+
+	_, err = tx.Exec(context.Background(), orderQuery, orderId, order.Order.UserId, totalSum)
+	if err != nil {
+		return &models.OrderCreateRequest{}, err
+	}
+
+	// Insert the order items
+	itemQuery := `INSERT INTO "orderiteam" (id, quantity, order_id, product_id, price, total, created_at, updated_at) 
+					 VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
+
+	for _, item := range order.Items {
+		itemId := uuid.New().String()
+		_, err = tx.Exec(context.Background(), itemQuery, itemId, item.Quantity, orderId, item.ProductId, item.Price, item.TotalPrice)
+		if err != nil {
+			return &models.OrderCreateRequest{}, err
+		}
+	}
+
+	order.Order.Id = orderId
+	order.Order.TotalPrice = totalSum
+
+	return order, tx.Commit(context.Background())
+}
+
+func (o *OrderRepo) GetAll(ctx context.Context, request *models.GetAllOrdersRequest) (*[]models.OrderCreateRequest, error) {
+	var (
+		orders     []models.OrderCreateRequest
+		created_at sql.NullString
+		updated_at sql.NullString
+	)
+
+	// Query to retrieve all orders
+	orderQuery := `
+		SELECT id, user_id, total_price, status, created_at, updated_at
+		FROM "order"
+	`
+	rows, err := o.db.Query(ctx, orderQuery)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve orders: %w", err)
+	}
+	defer rows.Close()
+
+	// Iterate over the retrieved orders
+	for rows.Next() {
+		var order models.Order
+		err = rows.Scan(&order.Id, &order.UserId, &order.TotalPrice, &order.Status, &created_at, &updated_at)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan order: %w", err)
+		}
+
+		// Query to retrieve order items for the current order
+		orderItemQuery := `
+			SELECT id, product_id, order_id, quantity, price, total, created_at, updated_at
+			FROM "orderiteam"
+			WHERE order_id = $1
+		`
+		itemRows, err := o.db.Query(ctx, orderItemQuery, order.Id)
+		if err != nil {
+			return nil, fmt.Errorf("failed to retrieve items for order %s: %w", order.Id, err)
+		}
+		defer itemRows.Close()
+
+		var orderItems []models.OrderItem
+		for itemRows.Next() {
+			var item models.OrderItem
+			err = itemRows.Scan(&item.Id, &item.ProductId, &item.OrderId, &item.Quantity, &item.Price, &item.TotalPrice, &created_at, &updated_at)
+			if err != nil {
+				return nil, fmt.Errorf("failed to scan order item: %w", err)
+			}
+			orderItems = append(orderItems, models.OrderItem{
+				Id:         item.Id,
+				ProductId:  item.ProductId,
+				OrderId:    item.OrderId,
+				Quantity:   item.Quantity,
+				Price:      item.Price,
+				TotalPrice: item.TotalPrice,
+				CreatedAt:  created_at.String,
+				UpdatedAt:  updated_at.String,
+			})
+		}
+
+		// Add order items to the order struct
+		// order.OrderItems = orderItems
+
+		// Append the order to the result set
+		orders = append(orders, models.OrderCreateRequest{
+			Order: models.Order{
+				Id:         order.Id,
+                UserId:     order.UserId,
+                TotalPrice: order.TotalPrice,
+                Status:     order.Status,
+                CreatedAt:  created_at.String,
+                UpdatedAt:  updated_at.String,
+			},
+			Items: orderItems,
 		})
 	}
-	return resp, nil
-}
 
-func (o *OrderRepo) GetByID(ctx context.Context, id string) (*models.Order, error) {
-	var (
-		order       = models.Order{}
-		userID      sql.NullString
-		orderItemId sql.NullString
-		totalPrice  sql.NullFloat64
-		status      sql.NullString
-		createdAt   sql.NullString
-		updatedAt   sql.NullString
-	)
-	if err := o.db.QueryRow(context.Background(), `SELECT id, user_id, orderitem_id, total_price, status, created_at, updated_at FROM "order" WHERE id = $1`, id).Scan(
-		&order.Id,
-		&userID,
-		&orderItemId,
-		&totalPrice,
-		&status,
-		&createdAt,
-		&updatedAt,
-	); err != nil {
-		o.log.Error("error while getting order by ID in storage: " + err.Error())
-		return &models.Order{}, err
-	}
-	return &models.Order{
-		Id:          order.Id,
-		UserId:      userID.String,
-		OrderItemId: orderItemId.String,
-		TotalPrice:  totalPrice.Float64,
-		Status:      status.String,
-		CreatedAt:   createdAt.String,
-		UpdatedAt:   updatedAt.String,
-	}, nil
-}
-
-func (o *OrderRepo) Delete(ctx context.Context, id string) error {
-	query := `DELETE FROM "order" WHERE id = $1`
-	result, err := o.db.Exec(context.Background(), query, id)
-	if err != nil {
-		o.log.Error("error while deleting order in storage: " + err.Error())
-		return err
+	if err = rows.Err(); err != nil {
+		return nil, err
 	}
 
-	if result.RowsAffected() == 0 {
-		return fmt.Errorf("no order found with id %v", id)
-	}
-	return nil
+	return &orders, nil
 }

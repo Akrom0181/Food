@@ -104,7 +104,7 @@ func (p *ProductRepo) GetAll(ctx context.Context, req *models.GetAllProductsRequ
 	offset := (req.Page - 1) * req.Limit
 
 	if req.Search != "" {
-		filter += fmt.Sprintf(` AND (name ILIKE '%%%v%%') `, req.Search)
+		filter += fmt.Sprintf(` WHERE (name ILIKE '%%%v%%') `, req.Search)
 	}
 
 	filter += fmt.Sprintf(" OFFSET %v LIMIT %v", offset, req.Limit)

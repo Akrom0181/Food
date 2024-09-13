@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
-	_ "food/api/docs"
+
 	"food/api/models"
 	"net/http"
 	"strconv"
@@ -169,7 +169,7 @@ func (h *Handler) GetAllCategories(c *gin.Context) {
 // @ID 			delete_category
 // @Router		/food/api/v1/deletecategory/{id} [DELETE]
 // @Summary		delete a category by its id
-// @Description This api deletes a category by its id 
+// @Description This api deletes a category by its id
 // @Tags		category
 // @Accept		json
 // @Produce		json

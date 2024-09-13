@@ -15,7 +15,6 @@ type IStorage interface {
 	Category() ICategoryStorage
 	Product() IProductStorage
 	Order() IOrderStorage
-	OrderItem() IOrderItemStorage
 	CourierAssignment() ICourierAssignmentStorage
 	Notification() INotificationStorage
 	DeliveryHistory() IDeliveryHistoryStorage
@@ -62,19 +61,12 @@ type IProductStorage interface {
 }
 
 type IOrderStorage interface {
-	Create(context.Context, *models.Order) (*models.Order, error)
-	GetAll(ctx context.Context, request *models.GetAllOrdersRequest) (*models.GetAllOrdersResponse, error)
-	GetByID(ctx context.Context, id string) (*models.Order, error)
-	Update(context.Context, *models.Order) (*models.Order, error)
-	Delete(context.Context, string) error
-}
-
-type IOrderItemStorage interface {
-	Create(context.Context, *models.OrderItem) (*models.OrderItem, error)
-	GetAll(ctx context.Context, request *models.GetAllOrderItemsRequest) (*models.GetAllOrderItemsResponse, error)
-	GetByID(ctx context.Context, id string) (*models.OrderItem, error)
-	Update(context.Context, *models.OrderItem) (*models.OrderItem, error)
-	Delete(context.Context, string) error
+	Create(ctx context.Context, request *models.OrderCreateRequest) (*models.OrderCreateRequest, error)
+	GetAll(ctx context.Context, request *models.GetAllOrdersRequest) (*[]models.OrderCreateRequest, error)
+	// GetByID(ctx context.Context, id string) (*models.Order, error)
+	// Update(context.Context, *models.Order) (*models.Order, error)
+	// Delete(context.Context, string) error
+	// ChangeStatus(context.Context, *models.ChangeStatus) (string, error)
 }
 
 type ICourierAssignmentStorage interface {

@@ -53,7 +53,7 @@ func (b *BannerRepo) GetAll(ctx context.Context, req *models.GetAllBannerRequest
 	offset := (req.Page - 1) * req.Limit
 
 	if req.Search != "" {
-		filter += fmt.Sprintf(` AND image_url ILIKE '%%%v%%' `, req.Search)
+		filter += fmt.Sprintf(` WHERE image_url ILIKE '%%%v%%' `, req.Search)
 	}
 
 	filter += fmt.Sprintf(" OFFSET %v LIMIT %v", offset, req.Limit)

@@ -21,7 +21,6 @@ type Store struct {
 	branch             *BranchRepo
 	banner			   *BannerRepo
 	category           *CategoryRepo
-	orderItem          *OrderItemRepo
 	order              *OrderRepo
 	product            *ProductRepo
 	notification       *NotificationRepo
@@ -179,13 +178,4 @@ func (s *Store) Notification() storage.INotificationStorage {
 	return s.notification
 }
 
-// OrderItem implements storage.IStorage.
-func (s *Store) OrderItem() storage.IOrderItemStorage {
-	if s.orderItem == nil {
-		s.orderItem = &OrderItemRepo{
-			db:  s.db,
-			log: s.log,
-		}
-	}
-	return s.orderItem
-}
+

@@ -1,11 +1,10 @@
 package models
 
-
 type Url struct {
-	Id  string `json:"id"`
 	Url string `json:"url"`
+	Id  string `json:"id"`
 }
 
 type MultipleFileUploadResponse struct {
-	Url []*Url `json:"urls"`
+	Url []*Url `json:"url"`
 }

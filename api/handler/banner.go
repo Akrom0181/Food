@@ -48,7 +48,7 @@ func (h *Handler) CreateBanner(c *gin.Context) {
 // @Tags 		banner
 // @Accept 		json
 // @Produce 	json
-// @Param 		search query string false "Search banners"
+// @Param 		search query string false "Search banners by image_url"
 // @Param 		page   query uint64 false "Page number"
 // @Param 		limit  query uint64 false "Limit number of results per page"
 // @Success 	200 {object} models.GetAllBannerResponse
