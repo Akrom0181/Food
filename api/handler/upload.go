@@ -2,6 +2,7 @@ package handler
 
 import (
 	"food/pkg/helper"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,17 +22,19 @@ import (
 func (h *Handler) UploadFiles(c *gin.Context) {
 	form, err := c.MultipartForm()
 	if err != nil {
-		h.log.Error(err.Error() + "  :  " + "File error")
+		h.log.Error("Multipart form error: " + err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse form"})
 		return
 	}
 
 	resp, err := helper.UploadFiles(form)
 	if err != nil {
-		h.log.Error(err.Error() + "  :  " + "Upload error")
+		h.log.Error("Upload error: " + err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload files"})
 		return
 	}
 
-	c.JSON(200, resp)
+	c.JSON(http.StatusOK, resp)
 }
 
 // delete file godoc
@@ -47,12 +50,19 @@ func (h *Handler) UploadFiles(c *gin.Context) {
 // @Response     400 {object} Response{data=string} "Bad Request"
 // @Failure      500 {object} Response{data=string} "Server error"
 func (h *Handler) DeleteFile(c *gin.Context) {
+	id := c.Query("id")
 
-	err := helper.DeleteFile(c.Query("id"))
-	if err != nil {
-		h.log.Error(err.Error() + "  :  " + "Upload error")
-		c.JSON(500, err.Error())
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing file ID"})
 		return
 	}
-	c.JSON(204, "success")
+
+	err := helper.DeleteFile(id)
+	if err != nil {
+		h.log.Error("Delete error: " + err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete file"})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, gin.H{"message": "File deleted successfully"})
 }
