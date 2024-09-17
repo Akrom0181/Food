@@ -182,6 +182,17 @@ definitions:
       updated_at:
         type: string
     type: object
+  models.OrderUpdateS:
+    properties:
+      order_items:
+        items:
+          $ref: '#/definitions/models.UpdateOrderItem'
+        type: array
+      status:
+        type: string
+      total_price:
+        type: number
+    type: object
   models.Product:
     properties:
       category_id:
@@ -245,6 +256,15 @@ definitions:
     properties:
       name:
         type: string
+    type: object
+  models.UpdateOrderItem:
+    properties:
+      price:
+        type: number
+      product_id:
+        type: string
+      quantity:
+        type: integer
     type: object
   models.UpdateProduct:
     properties:
@@ -748,6 +768,51 @@ paths:
       summary: Delete File
       tags:
       - Upload File
+  /food/api/v1/deleteorder/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a order by its Id
+      operationId: delete_order
+      parameters:
+      - description: Order Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Delete order by Id
+      tags:
+      - order
   /food/api/v1/deleteproduct/{id}:
     delete:
       consumes:
@@ -983,7 +1048,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieve all products
+      description: Retrieve all orders
       operationId: get_all_orders
       parameters:
       - description: Search orders by name or description
@@ -1025,7 +1090,7 @@ paths:
                 data:
                   type: string
               type: object
-      summary: Get All Products
+      summary: Get All Orders
       tags:
       - order
   /food/api/v1/getallproducts:
@@ -1242,6 +1307,44 @@ paths:
       summary: Get User by ID
       tags:
       - user
+  /food/api/v1/getorder/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get_order
+      operationId: get_order
+      parameters:
+      - description: Order Id or user Id
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.OrderCreateRequest'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: get_order
+      tags:
+      - order
   /food/api/v1/getproduct/{id}:
     get:
       consumes:
@@ -1404,6 +1507,52 @@ paths:
       summary: Update Branch
       tags:
       - branch
+  /food/api/v1/updateorder/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update an existing order
+      operationId: update_order
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: UpdateOrderRequest
+        in: body
+        name: Order
+        required: true
+        schema:
+          $ref: '#/definitions/models.OrderUpdateS'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.OrderCreateRequest'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Update Order
+      tags:
+      - order
   /food/api/v1/updateproduct/{id}:
     put:
       consumes:

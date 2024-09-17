@@ -1,0 +1,2112 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>postgres: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">food/storage/postgres/banner.go (0.0%)</option>
+				
+				<option value="file1">food/storage/postgres/branch.go (0.0%)</option>
+				
+				<option value="file2">food/storage/postgres/category.go (0.0%)</option>
+				
+				<option value="file3">food/storage/postgres/courier_assignment.go (0.0%)</option>
+				
+				<option value="file4">food/storage/postgres/delivery_history.go (0.0%)</option>
+				
+				<option value="file5">food/storage/postgres/notification.go (0.0%)</option>
+				
+				<option value="file6">food/storage/postgres/order.go (0.0%)</option>
+				
+				<option value="file7">food/storage/postgres/postgres.go (0.0%)</option>
+				
+				<option value="file8">food/storage/postgres/product.go (0.0%)</option>
+				
+				<option value="file9">food/storage/postgres/user.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package postgres
+
+import (
+        "context"
+        "database/sql"
+        "fmt"
+        "food/api/models"
+        "food/pkg/logger"
+
+        "github.com/jackc/pgx/v4/pgxpool"
+)
+
+type BannerRepo struct {
+        db  *pgxpool.Pool
+        log logger.LoggerI
+}
+
+func NewBannerRepo(db *pgxpool.Pool, log logger.LoggerI) *BannerRepo <span class="cov0" title="0">{
+        return &amp;BannerRepo{
+                db:  db,
+                log: log,
+        }
+}</span>
+
+func (b *BannerRepo) Create(ctx context.Context, banner *models.Banner) (*models.Banner, error) <span class="cov0" title="0">{
+
+        query := `INSERT INTO "banner" (
+                image_url,
+                created_at)
+                VALUES ($1, CURRENT_TIMESTAMP)
+        `
+
+        _, err := b.db.Exec(ctx, query,
+                banner.ImageUrl,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                b.log.Error("Error creating banner: " + err.Error())
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">b.log.Info("Banner created successfully!")
+        return &amp;models.Banner{
+                ImageUrl:   banner.ImageUrl,
+                Created_at: banner.Created_at,
+        }, nil</span>
+}
+
+func (b *BannerRepo) GetAll(ctx context.Context, req *models.GetAllBannerRequest) (*models.GetAllBannerResponse, error) <span class="cov0" title="0">{
+        var (
+                resp   = &amp;models.GetAllBannerResponse{}
+                filter = ""
+        )
+        offset := (req.Page - 1) * req.Limit
+
+        if req.Search != "" </span><span class="cov0" title="0">{
+                filter += fmt.Sprintf(` WHERE image_url ILIKE '%%%v%%' `, req.Search)
+        }</span>
+
+        <span class="cov0" title="0">filter += fmt.Sprintf(" OFFSET %v LIMIT %v", offset, req.Limit)
+
+        query := fmt.Sprintf(`SELECT count(image_url) OVER(), image_url, created_at FROM "banner" %s`, filter)
+        rows, err := b.db.Query(ctx, query)
+        if err != nil </span><span class="cov0" title="0">{
+                b.log.Error("Error retrieving banners: " + err.Error())
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">for rows.Next() </span><span class="cov0" title="0">{
+                var (
+                        imageUrl   sql.NullString
+                        created_at sql.NullString
+                )
+
+                if err := rows.Scan(
+                        &amp;resp.Count,
+                        &amp;imageUrl,
+                        &amp;created_at); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+
+                <span class="cov0" title="0">resp.Banners = append(resp.Banners, models.Banner{
+                        ImageUrl:   imageUrl.String,
+                        Created_at: created_at.String,
+                })</span>
+        }
+
+        <span class="cov0" title="0">b.log.Info("Banners retrieved successfully!")
+        return resp, nil</span>
+}
+
+func (b *BannerRepo) Delete(ctx context.Context, id string) error <span class="cov0" title="0">{
+        query := `DELETE FROM "banner" WHERE image_url = $1`
+        _, err := b.db.Exec(ctx, query, id)
+        if err != nil </span><span class="cov0" title="0">{
+                b.log.Error("Error deleting banner: " + err.Error())
+                return err
+        }</span>
+
+        <span class="cov0" title="0">b.log.Info("Banner deleted successfully!")
+        return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package postgres
+
+import (
+        "context"
+        "database/sql"
+        "fmt"
+        "food/api/models"
+        "food/pkg/logger"
+
+        "github.com/google/uuid"
+        "github.com/jackc/pgx/v4/pgxpool"
+)
+
+type BranchRepo struct {
+        db  *pgxpool.Pool
+        log logger.LoggerI
+}
+
+func NewBranchRepo(db *pgxpool.Pool, log logger.LoggerI) BranchRepo <span class="cov0" title="0">{
+        return BranchRepo{
+                db:  db,
+                log: log,
+        }
+}</span>
+
+func (b *BranchRepo) Create(ctx context.Context, branch *models.Branch) (*models.Branch, error) <span class="cov0" title="0">{
+        id := uuid.New()
+        query := `INSERT INTO "branch" (
+                id,
+                name,
+                address,
+                latitude,
+                longitude,
+                created_at,
+                updated_at)
+                VALUES($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        `
+
+        _, err := b.db.Exec(context.Background(), query,
+                id.String(),
+                branch.Name,
+                branch.Address,
+                branch.Latitude,
+                branch.Longitude,
+        )
+
+        if err != nil </span><span class="cov0" title="0">{
+                return &amp;models.Branch{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.Branch{
+                Id:        id.String(),
+                Name:      branch.Name,
+                Address:   branch.Address,
+                Latitude:  branch.Latitude,
+                Longitude: branch.Longitude,
+                CreatedAt: branch.CreatedAt,
+                UpdatedAt: branch.UpdatedAt,
+        }, nil</span>
+}
+
+func (b *BranchRepo) Update(ctx context.Context, branch *models.Branch) (*models.Branch, error) <span class="cov0" title="0">{
+        query := `UPDATE "branch" SET 
+                name=$1,
+                address=$2,
+                latitude=$3,
+                longitude=$4,
+                updated_at=CURRENT_TIMESTAMP
+                WHERE id = $5
+        `
+        _, err := b.db.Exec(context.Background(), query,
+                branch.Name,
+                branch.Address,
+                branch.Latitude,
+                branch.Longitude,
+                branch.Id,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return &amp;models.Branch{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.Branch{
+                Id:        branch.Id,
+                Name:      branch.Name,
+                Address:   branch.Address,
+                Latitude:  branch.Latitude,
+                Longitude: branch.Longitude,
+                CreatedAt: branch.CreatedAt,
+                UpdatedAt: branch.UpdatedAt,
+        }, nil</span>
+}
+
+func (b *BranchRepo) GetAll(ctx context.Context, req *models.GetAllBranchesRequest) (*models.GetAllBranchesResponse, error) <span class="cov0" title="0">{
+        var (
+                resp   = &amp;models.GetAllBranchesResponse{}
+                filter = ""
+        )
+        offset := (req.Page - 1) * req.Limit
+
+        if req.Search != "" </span><span class="cov0" title="0">{
+                filter += fmt.Sprintf(` AND (name ILIKE '%%%v%%' OR address ILIKE '%%%v%%') `, req.Search, req.Search)
+        }</span>
+
+        <span class="cov0" title="0">filter += fmt.Sprintf(" OFFSET %v LIMIT %v", offset, req.Limit)
+        fmt.Println("filter: ", filter)
+
+        rows, err := b.db.Query(context.Background(), `SELECT count(id) OVER(),
+        id,
+        name,
+        address,
+        latitude,
+        longitude,
+        created_at,
+        updated_at FROM "branch"`+filter)
+        if err != nil </span><span class="cov0" title="0">{
+                return resp, err
+        }</span>
+
+        <span class="cov0" title="0">for rows.Next() </span><span class="cov0" title="0">{
+                var (
+                        branch     = models.Branch{}
+                        name       sql.NullString
+                        address    sql.NullString
+                        latitude   sql.NullFloat64
+                        longitude  sql.NullFloat64
+                        created_at sql.NullString
+                        updated_at sql.NullString
+                )
+                if err := rows.Scan(
+                        &amp;resp.Count,
+                        &amp;branch.Id,
+                        &amp;name,
+                        &amp;address,
+                        &amp;latitude,
+                        &amp;longitude,
+                        &amp;created_at,
+                        &amp;updated_at); err != nil </span><span class="cov0" title="0">{
+                        return resp, err
+                }</span>
+
+                <span class="cov0" title="0">resp.Branches = append(resp.Branches, models.Branch{
+                        Id:        branch.Id,
+                        Name:      name.String,
+                        Address:   address.String,
+                        Latitude:  latitude.Float64,
+                        Longitude: longitude.Float64,
+                        CreatedAt: created_at.String,
+                        UpdatedAt: updated_at.String,
+                })</span>
+        }
+        <span class="cov0" title="0">return resp, nil</span>
+}
+
+func (b *BranchRepo) GetByID(ctx context.Context, id string) (*models.Branch, error) <span class="cov0" title="0">{
+        var (
+                branch     = models.Branch{}
+                name       sql.NullString
+                address    sql.NullString
+                latitude   sql.NullFloat64
+                longitude  sql.NullFloat64
+                created_at sql.NullString
+                updated_at sql.NullString
+        )
+        if err := b.db.QueryRow(context.Background(), `SELECT id, name, address, latitude, longitude, created_at, updated_at FROM "branch" WHERE id = $1`, id).Scan(
+                &amp;branch.Id,
+                &amp;name,
+                &amp;address,
+                &amp;latitude,
+                &amp;longitude,
+                &amp;created_at,
+                &amp;updated_at,
+        ); err != nil </span><span class="cov0" title="0">{
+                return &amp;models.Branch{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.Branch{
+                Id:        branch.Id,
+                Name:      name.String,
+                Address:   address.String,
+                Latitude:  latitude.Float64,
+                Longitude: longitude.Float64,
+                CreatedAt: created_at.String,
+                UpdatedAt: updated_at.String,
+        }, nil</span>
+}
+
+func (b *BranchRepo) Delete(ctx context.Context, id string) error <span class="cov0" title="0">{
+        query := `DELETE FROM "branch" WHERE id = $1`
+        _, err := b.db.Exec(context.Background(), query, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package postgres
+
+import (
+        "context"
+        "database/sql"
+        "fmt"
+        "food/api/models"
+        "food/pkg/logger"
+
+        "github.com/google/uuid"
+        "github.com/jackc/pgx/v4/pgxpool"
+)
+
+type CategoryRepo struct {
+        db  *pgxpool.Pool
+        log logger.LoggerI
+}
+
+func NewCategory(db *pgxpool.Pool, log logger.LoggerI) CategoryRepo <span class="cov0" title="0">{
+        return CategoryRepo{
+                db:  db,
+                log: log,
+        }
+}</span>
+
+func (c *CategoryRepo) Create(ctx context.Context, category *models.Category) (*models.Category, error) <span class="cov0" title="0">{
+
+        id := uuid.New()
+        query := `INSERT INTO "category" (
+                id,
+                name,
+                created_at,
+                updated_at)
+                VALUES($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        `
+
+        _, err := c.db.Exec(context.Background(), query,
+                id.String(),
+                category.Name,
+        )
+
+        if err != nil </span><span class="cov0" title="0">{
+                return &amp;models.Category{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.Category{
+                Id:        id.String(),
+                Name:      category.Name,
+                CreatedAt: category.CreatedAt,
+                UpdatedAt: category.UpdatedAt,
+        }, nil</span>
+}
+
+func (c *CategoryRepo) Update(ctx context.Context, category *models.Category) (*models.Category, error) <span class="cov0" title="0">{
+        query := `UPDATE "category" SET 
+                name=$1,
+                updated_at=CURRENT_TIMESTAMP
+                WHERE id = $2
+        `
+        _, err := c.db.Exec(context.Background(), query,
+                category.Name,
+                category.Id,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                c.log.Error("error while updating category in strg" + err.Error())
+                return &amp;models.Category{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.Category{
+                Id:        category.Id,
+                Name:      category.Name,
+                CreatedAt: category.CreatedAt,
+                UpdatedAt: category.UpdatedAt,
+        }, nil</span>
+}
+
+func (c *CategoryRepo) GetAll(ctx context.Context, req *models.GetAllCategoriesRequest) (*models.GetAllCategoriesResponse, error) <span class="cov0" title="0">{
+        var (
+                resp   = &amp;models.GetAllCategoriesResponse{}
+                filter = ""
+        )
+        offset := (req.Page - 1) * req.Limit
+
+        // If there's a search request, start with WHERE and apply the ILIKE filter
+        if req.Search != "" </span><span class="cov0" title="0">{
+                filter += fmt.Sprintf(` WHERE name ILIKE '%%%v%%'`, req.Search)
+        }</span>
+
+        // Append OFFSET and LIMIT to the filter
+        <span class="cov0" title="0">filter += fmt.Sprintf(" OFFSET %v LIMIT %v", offset, req.Limit)
+        fmt.Println("filter: ", filter)
+
+        query := `SELECT count(id) OVER(), id, name, created_at, updated_at FROM "category"` + filter
+
+        rows, err := c.db.Query(context.Background(), query)
+        if err != nil </span><span class="cov0" title="0">{
+                return resp, err
+        }</span>
+
+        <span class="cov0" title="0">for rows.Next() </span><span class="cov0" title="0">{
+                var (
+                        category   = models.Category{}
+                        name       sql.NullString
+                        created_at sql.NullString
+                        updated_at sql.NullString
+                )
+                if err := rows.Scan(
+                        &amp;resp.Count,
+                        &amp;category.Id,
+                        &amp;name,
+                        &amp;created_at,
+                        &amp;updated_at); err != nil </span><span class="cov0" title="0">{
+                        return resp, err
+                }</span>
+
+                <span class="cov0" title="0">resp.Categories = append(resp.Categories, models.Category{
+                        Id:        category.Id,
+                        Name:      name.String,
+                        CreatedAt: created_at.String,
+                        UpdatedAt: updated_at.String,
+                })</span>
+        }
+        <span class="cov0" title="0">return resp, nil</span>
+}
+
+
+func (c *CategoryRepo) GetByID(ctx context.Context, id string) (*models.Category, error) <span class="cov0" title="0">{
+        var (
+                category   = models.Category{}
+                name       sql.NullString
+                created_at sql.NullString
+                updated_at sql.NullString
+        )
+        if err := c.db.QueryRow(context.Background(), `SELECT id, name, created_at, updated_at FROM "category" WHERE id = $1`, id).Scan(
+                &amp;category.Id,
+                &amp;name,
+                &amp;created_at,
+                &amp;updated_at,
+        ); err != nil </span><span class="cov0" title="0">{
+                return &amp;models.Category{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.Category{
+                Id:        category.Id,
+                Name:      name.String,
+                CreatedAt: created_at.String,
+                UpdatedAt: updated_at.String,
+        }, nil</span>
+}
+
+func (c *CategoryRepo) Delete(ctx context.Context, id string) error <span class="cov0" title="0">{
+        query := `DELETE FROM "category" WHERE id = $1`
+        _, err := c.db.Exec(context.Background(), query, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package postgres
+
+import (
+        "context"
+        "database/sql"
+        "fmt"
+        "food/api/models"
+        "food/pkg/logger"
+
+        "github.com/google/uuid"
+        "github.com/jackc/pgx/v4/pgxpool"
+)
+
+type CourierAssignmentRepo struct {
+        db  *pgxpool.Pool
+        log logger.LoggerI
+}
+
+func NewCourierAssignment(db *pgxpool.Pool, log logger.LoggerI) CourierAssignmentRepo <span class="cov0" title="0">{
+        return CourierAssignmentRepo{
+                db:  db,
+                log: log,
+        }
+}</span>
+
+func (c *CourierAssignmentRepo) Create(ctx context.Context, assignment *models.CourierAssignment) (*models.CourierAssignment, error) <span class="cov0" title="0">{
+
+        id := uuid.New()
+        query := `INSERT INTO "courier_assignments" (
+                id,
+                order_id,
+                courier_id,
+                assigned_at,
+                status,
+                updated_at)
+                VALUES($1,$2,$3,CURRENT_TIMESTAMP,$4,CURRENT_TIMESTAMP) 
+        `
+
+        _, err := c.db.Exec(context.Background(), query,
+                id.String(),
+                assignment.OrderId,
+                assignment.CourierId,
+                assignment.Status,
+        )
+
+        if err != nil </span><span class="cov0" title="0">{
+                return &amp;models.CourierAssignment{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.CourierAssignment{
+                Id:         id.String(),
+                OrderId:    assignment.OrderId,
+                CourierId:  assignment.CourierId,
+                AssignedAt: assignment.AssignedAt,
+                Status:     assignment.Status,
+                UpdatedAt:  assignment.UpdatedAt,
+        }, nil</span>
+}
+
+func (c *CourierAssignmentRepo) Update(ctx context.Context, assignment *models.CourierAssignment) (*models.CourierAssignment, error) <span class="cov0" title="0">{
+        query := `UPDATE "courier_assignments" SET 
+                order_id=$1,
+                courier_id=$2,
+                status=$3,
+                updated_at=CURRENT_TIMESTAMP
+                WHERE id = $4
+        `
+        _, err := c.db.Exec(context.Background(), query,
+                assignment.OrderId,
+                assignment.CourierId,
+                assignment.Status,
+                assignment.Id,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return &amp;models.CourierAssignment{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.CourierAssignment{
+                Id:         assignment.Id,
+                OrderId:    assignment.OrderId,
+                CourierId:  assignment.CourierId,
+                Status:     assignment.Status,
+                AssignedAt: assignment.AssignedAt,
+                UpdatedAt:  assignment.UpdatedAt,
+        }, nil</span>
+}
+
+func (c *CourierAssignmentRepo) GetAll(ctx context.Context, req *models.GetAllCourierAssignmentsRequest) (*models.GetAllCourierAssignmentsResponse, error) <span class="cov0" title="0">{
+        var (
+                resp   = &amp;models.GetAllCourierAssignmentsResponse{}
+                filter = ""
+        )
+        offset := (req.Page - 1) * req.Limit
+
+        if req.Search != "" </span><span class="cov0" title="0">{
+                filter += fmt.Sprintf(` AND (order_id ILIKE '%%%v%%' OR courier_id ILIKE '%%%v%%' OR status ILIKE '%%%v%%') `, req.Search, req.Search, req.Search)
+        }</span>
+
+        <span class="cov0" title="0">filter += fmt.Sprintf(" OFFSET %v LIMIT %v", offset, req.Limit)
+        fmt.Println("filter: ", filter)
+
+        rows, err := c.db.Query(context.Background(), `SELECT count(id) OVER(),
+        id,
+        order_id,
+        courier_id,
+        assigned_at,
+        status,
+        updated_at FROM courier_assignments FROM "courier_assignment"`+filter)
+        if err != nil </span><span class="cov0" title="0">{
+                return resp, err
+        }</span>
+
+        <span class="cov0" title="0">for rows.Next() </span><span class="cov0" title="0">{
+                var (
+                        assignment models.CourierAssignment
+                        orderID    sql.NullString
+                        courierID  sql.NullString
+                        assignedAt sql.NullString
+                        status     sql.NullString
+                        updatedAt  sql.NullString
+                )
+                if err := rows.Scan(
+                        &amp;resp.Count,
+                        &amp;assignment.Id,
+                        &amp;orderID,
+                        &amp;courierID,
+                        &amp;assignedAt,
+                        &amp;status,
+                        &amp;updatedAt); err != nil </span><span class="cov0" title="0">{
+                        return resp, err
+                }</span>
+
+                <span class="cov0" title="0">resp.CourierAssignments = append(resp.CourierAssignments, models.CourierAssignment{
+                        Id:         assignment.Id,
+                        OrderId:    orderID.String,
+                        CourierId:  courierID.String,
+                        AssignedAt: assignedAt.String,
+                        Status:     status.String,
+                        UpdatedAt:  updatedAt.String,
+                })</span>
+        }
+        <span class="cov0" title="0">return resp, nil</span>
+}
+
+func (c *CourierAssignmentRepo) GetByID(ctx context.Context, id string) (*models.CourierAssignment, error) <span class="cov0" title="0">{
+        var (
+                assignment models.CourierAssignment
+                orderID    sql.NullString
+                courierID  sql.NullString
+                assignedAt sql.NullString
+                status     sql.NullString
+                createdAt  sql.NullString
+                updatedAt  sql.NullString
+        )
+        if err := c.db.QueryRow(context.Background(), `SELECT id, order_id, courier_id, assigned_at, status, created_at, updated_at FROM "courier_assignments" WHERE id = $1`, id).Scan(
+                &amp;assignment.Id,
+                &amp;orderID,
+                &amp;courierID,
+                &amp;assignedAt,
+                &amp;status,
+                &amp;createdAt,
+                &amp;updatedAt,
+        ); err != nil </span><span class="cov0" title="0">{
+                return &amp;models.CourierAssignment{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.CourierAssignment{
+                Id:         assignment.Id,
+                OrderId:    orderID.String,
+                CourierId:  courierID.String,
+                AssignedAt: assignedAt.String,
+                Status:     status.String,
+                UpdatedAt:  updatedAt.String,
+        }, nil</span>
+}
+
+func (c *CourierAssignmentRepo) Delete(ctx context.Context, id string) error <span class="cov0" title="0">{
+        query := `DELETE FROM courier_assignments WHERE id = $1`
+        _, err := c.db.Exec(context.Background(), query, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package postgres
+
+import (
+        "context"
+        "database/sql"
+        "fmt"
+        "food/api/models"
+        "food/pkg/logger"
+
+        "github.com/google/uuid"
+        "github.com/jackc/pgx/v4/pgxpool"
+)
+
+type DeliveryHistoryRepo struct {
+        db  *pgxpool.Pool
+        log logger.LoggerI
+}
+
+func NewDeliveryHistory(db *pgxpool.Pool, log logger.LoggerI) DeliveryHistoryRepo <span class="cov0" title="0">{
+        return DeliveryHistoryRepo{
+                db: db,
+                log: log,
+        }
+}</span>
+
+func (r *DeliveryHistoryRepo) Create(ctx context.Context, deliveryHistory *models.DeliveryHistory) (*models.DeliveryHistory, error) <span class="cov0" title="0">{
+
+        id := uuid.New()
+        query := `INSERT INTO "delivery_history" (
+                id,
+                courier_id,
+                order_id,
+                earnings,
+                delivered_at)
+                VALUES($1,$2,$3,$4,$5) 
+        `
+
+        _, err := r.db.Exec(context.Background(), query,
+                id.String(),
+                deliveryHistory.CourierId,
+                deliveryHistory.OrderId,
+                deliveryHistory.Earnings,
+                deliveryHistory.DeliveredAt,
+        )
+
+        if err != nil </span><span class="cov0" title="0">{
+                return &amp;models.DeliveryHistory{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.DeliveryHistory{
+                Id:          id.String(),
+                CourierId:   deliveryHistory.CourierId,
+                OrderId:     deliveryHistory.OrderId,
+                Earnings:    deliveryHistory.Earnings,
+                DeliveredAt: deliveryHistory.DeliveredAt,
+        }, nil</span>
+}
+
+func (r *DeliveryHistoryRepo) Update(ctx context.Context, deliveryHistory *models.DeliveryHistory) (*models.DeliveryHistory, error) <span class="cov0" title="0">{
+        query := `UPDATE "delivery_history" SET 
+                courier_id=$1,
+                order_id=$2,
+                earnings=$3,
+                delivered_at=$4
+                WHERE id = $5
+        `
+        _, err := r.db.Exec(context.Background(), query,
+                deliveryHistory.CourierId,
+                deliveryHistory.OrderId,
+                deliveryHistory.Earnings,
+                deliveryHistory.DeliveredAt,
+                deliveryHistory.Id,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return &amp;models.DeliveryHistory{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.DeliveryHistory{
+                Id:          deliveryHistory.Id,
+                CourierId:   deliveryHistory.CourierId,
+                OrderId:     deliveryHistory.OrderId,
+                Earnings:    deliveryHistory.Earnings,
+                DeliveredAt: deliveryHistory.DeliveredAt,
+        }, nil</span>
+}
+
+func (r *DeliveryHistoryRepo) GetAll(ctx context.Context, req *models.GetAllDeliveryHistoriesRequest) (*models.GetAllDeliveryHistoriesResponse, error) <span class="cov0" title="0">{
+        var (
+                resp   = &amp;models.GetAllDeliveryHistoriesResponse{}
+                filter = ""
+        )
+        offset := (req.Page - 1) * req.Limit
+
+        if req.Search != "" </span><span class="cov0" title="0">{
+                filter += fmt.Sprintf(` AND (courier_id ILIKE '%%%v%%' OR order_id ILIKE '%%%v%%') `, req.Search, req.Search)
+        }</span>
+
+        <span class="cov0" title="0">filter += fmt.Sprintf(" OFFSET %v LIMIT %v", offset, req.Limit)
+        fmt.Println("filter: ", filter)
+
+        rows, err := r.db.Query(context.Background(), `SELECT count(id) OVER(),
+        id,
+        courier_id,
+        order_id,
+        earnings,
+        delivered_at FROM "delivery_history"`+filter)
+        if err != nil </span><span class="cov0" title="0">{
+                return resp, err
+        }</span>
+
+        <span class="cov0" title="0">for rows.Next() </span><span class="cov0" title="0">{
+                var (
+                        deliveryHistory = models.DeliveryHistory{}
+                        courierId       sql.NullString
+                        orderId         sql.NullString
+                        earnings        sql.NullFloat64
+                        deliveredAt     sql.NullString
+                )
+                if err := rows.Scan(
+                        &amp;resp.Count,
+                        &amp;deliveryHistory.Id,
+                        &amp;courierId,
+                        &amp;orderId,
+                        &amp;earnings,
+                        &amp;deliveredAt); err != nil </span><span class="cov0" title="0">{
+                        return resp, err
+                }</span>
+                <span class="cov0" title="0">resp.DeliveryHistories = append(resp.DeliveryHistories, models.DeliveryHistory{
+                        Id:          deliveryHistory.Id,
+                        CourierId:   courierId.String,
+                        OrderId:     orderId.String,
+                        Earnings:    earnings.Float64,
+                        DeliveredAt: deliveredAt.String,
+                })</span>
+        }
+        <span class="cov0" title="0">return resp, nil</span>
+}
+
+func (r *DeliveryHistoryRepo) GetByID(ctx context.Context, id string) (*models.DeliveryHistory, error) <span class="cov0" title="0">{
+        var (
+                deliveryHistory = models.DeliveryHistory{}
+                courierId       sql.NullString
+                orderId         sql.NullString
+                earnings        sql.NullFloat64
+                deliveredAt     sql.NullString
+        )
+        if err := r.db.QueryRow(context.Background(), `SELECT id, courier_id, order_id, earnings, delivered_at FROM "delivery_history" WHERE id = $1`, id).Scan(
+                &amp;deliveryHistory.Id,
+                &amp;courierId,
+                &amp;orderId,
+                &amp;earnings,
+                &amp;deliveredAt,
+        ); err != nil </span><span class="cov0" title="0">{
+                return &amp;models.DeliveryHistory{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.DeliveryHistory{
+                Id:          deliveryHistory.Id,
+                CourierId:   courierId.String,
+                OrderId:     orderId.String,
+                Earnings:    earnings.Float64,
+                DeliveredAt: deliveredAt.String,
+        }, nil</span>
+}
+
+func (r *DeliveryHistoryRepo) Delete(ctx context.Context, id string) error <span class="cov0" title="0">{
+        query := `DELETE FROM "delivery_history" WHERE id = $1`
+        _, err := r.db.Exec(context.Background(), query, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package postgres
+
+import (
+        "context"
+        "database/sql"
+        "fmt"
+        "food/api/models"
+        "food/pkg/logger"
+
+        "github.com/google/uuid"
+        "github.com/jackc/pgx/v4/pgxpool"
+)
+
+type NotificationRepo struct {
+        db  *pgxpool.Pool
+        log logger.LoggerI
+}
+
+func NewNotification(db *pgxpool.Pool, log logger.LoggerI) NotificationRepo <span class="cov0" title="0">{
+        return NotificationRepo{
+                db:  db,
+                log: log,
+        }
+}</span>
+
+func (n *NotificationRepo) Create(ctx context.Context, notification *models.Notification) (*models.Notification, error) <span class="cov0" title="0">{
+
+        id := uuid.New()
+        query := `INSERT INTO "notifications" (
+                id,
+                user_id,
+                message,
+                status,
+                created_at,
+                updated_at)
+                VALUES($1,$2,$3,$4,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) 
+        `
+
+        _, err := n.db.Exec(context.Background(), query,
+                id.String(),
+                notification.UserId,
+                notification.Message,
+                notification.IsRead,
+        )
+
+        if err != nil </span><span class="cov0" title="0">{
+                return &amp;models.Notification{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.Notification{
+                Id:        id.String(),
+                UserId:    notification.UserId,
+                Message:   notification.Message,
+                IsRead:    notification.IsRead,
+                CreatedAt: notification.CreatedAt,
+        }, nil</span>
+}
+
+func (n *NotificationRepo) Update(ctx context.Context, notification *models.Notification) (*models.Notification, error) <span class="cov0" title="0">{
+        query := `UPDATE "notifications" SET 
+                user_id=$1,
+                message=$2,
+                status=$3,
+                updated_at=CURRENT_TIMESTAMP
+                WHERE id = $4
+        `
+        _, err := n.db.Exec(context.Background(), query,
+                notification.UserId,
+                notification.Message,
+                notification.IsRead,
+                notification.Id,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return &amp;models.Notification{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.Notification{
+                Id:        notification.Id,
+                UserId:    notification.UserId,
+                Message:   notification.Message,
+                IsRead:    notification.IsRead,
+                CreatedAt: notification.CreatedAt,
+        }, nil</span>
+}
+
+func (n *NotificationRepo) GetAll(ctx context.Context, req *models.GetAllNotificationsRequest) (*models.GetAllNotificationsResponse, error) <span class="cov0" title="0">{
+        var (
+                resp   = &amp;models.GetAllNotificationsResponse{}
+                filter = ""
+        )
+        offset := (req.Page - 1) * req.Limit
+
+        if req.Search != "" </span><span class="cov0" title="0">{
+                filter += fmt.Sprintf(` AND (message ILIKE '%%%v%%') `, req.Search)
+        }</span>
+
+        <span class="cov0" title="0">filter += fmt.Sprintf(" OFFSET %v LIMIT %v", offset, req.Limit)
+        fmt.Println("filter: ", filter)
+
+        rows, err := n.db.Query(context.Background(), `SELECT count(id) OVER(),
+        id,
+        user_id,
+        message,
+        status,
+        created_at,
+        updated_at FROM "notifications"`+filter)
+        if err != nil </span><span class="cov0" title="0">{
+                return resp, err
+        }</span>
+
+        <span class="cov0" title="0">for rows.Next() </span><span class="cov0" title="0">{
+                var (
+                        notification models.Notification
+                        userId       sql.NullString
+                        message      sql.NullString
+                        is_read      sql.NullBool
+                        createdAt    sql.NullString
+                        updatedAt    sql.NullString
+                )
+                if err := rows.Scan(
+                        &amp;resp.Count,
+                        &amp;notification.Id,
+                        &amp;userId,
+                        &amp;message,
+                        &amp;is_read,
+                        &amp;createdAt,
+                        &amp;updatedAt); err != nil </span><span class="cov0" title="0">{
+                        return resp, err
+                }</span>
+                <span class="cov0" title="0">resp.Notifications = append(resp.Notifications, models.Notification{
+                        Id:        notification.Id,
+                        UserId:    userId.String,
+                        Message:   message.String,
+                        IsRead:    is_read.Bool,
+                        CreatedAt: createdAt.String,
+                })</span>
+        }
+        <span class="cov0" title="0">return resp, nil</span>
+}
+
+func (n *NotificationRepo) GetByID(ctx context.Context, id string) (*models.Notification, error) <span class="cov0" title="0">{
+        var (
+                notification models.Notification
+                userId       sql.NullString
+                message      sql.NullString
+                is_read      sql.NullBool
+                createdAt    sql.NullString
+                updatedAt    sql.NullString
+        )
+        if err := n.db.QueryRow(context.Background(), `SELECT id, user_id, message, status, created_at, updated_at FROM "notifications" WHERE id = $1`, id).Scan(
+                &amp;notification.Id,
+                &amp;userId,
+                &amp;message,
+                &amp;is_read,
+                &amp;createdAt,
+                &amp;updatedAt,
+        ); err != nil </span><span class="cov0" title="0">{
+                return &amp;models.Notification{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.Notification{
+                Id:        notification.Id,
+                UserId:    userId.String,
+                Message:   message.String,
+                IsRead:    is_read.Bool,
+                CreatedAt: createdAt.String,
+        }, nil</span>
+}
+
+func (n *NotificationRepo) Delete(ctx context.Context, id string) error <span class="cov0" title="0">{
+        query := `DELETE FROM "notifications" WHERE id = $1`
+        _, err := n.db.Exec(context.Background(), query, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package postgres
+
+import (
+        "context"
+        "database/sql"
+        "fmt"
+        "food/api/models"
+        "food/pkg/logger"
+
+        "github.com/google/uuid"
+        "github.com/jackc/pgx/v4/pgxpool"
+)
+
+type OrderRepo struct {
+        db  *pgxpool.Pool
+        log logger.LoggerI
+}
+
+func NewOrder(db *pgxpool.Pool, log logger.LoggerI) OrderRepo <span class="cov0" title="0">{
+        return OrderRepo{
+                db:  db,
+                log: log,
+        }
+}</span>
+
+func (o *OrderRepo) Create(ctx context.Context, order *models.OrderCreateRequest) (*models.OrderCreateRequest, error) <span class="cov0" title="0">{
+        tx, err := o.db.Begin(context.Background())
+        if err != nil </span><span class="cov0" title="0">{
+                return &amp;models.OrderCreateRequest{}, err
+        }</span>
+        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov0" title="0">{
+                        tx.Rollback(context.Background())
+                }</span>
+        }()
+
+        // Generate a new UUID for the order
+        <span class="cov0" title="0">orderId := uuid.New().String()
+
+        var totalSum float64
+        for i, item := range order.Items </span><span class="cov0" title="0">{
+                if item.Quantity &lt;= 0 </span><span class="cov0" title="0">{
+                        return &amp;models.OrderCreateRequest{}, fmt.Errorf("quantity must be greater than 0 for product %s", item.ProductId)
+                }</span>
+
+                <span class="cov0" title="0">var productPrice float64
+                productQuery := `SELECT price FROM "product" WHERE id = $1`
+                err = o.db.QueryRow(context.Background(), productQuery, item.ProductId).Scan(&amp;productPrice)
+                if err != nil </span><span class="cov0" title="0">{
+                        return &amp;models.OrderCreateRequest{}, fmt.Errorf("failed to retrieve price for product %s: %w", item.ProductId, err)
+                }</span>
+
+                <span class="cov0" title="0">order.Items[i].Price = productPrice
+                order.Items[i].TotalPrice = productPrice * float64(item.Quantity)
+                totalSum += order.Items[i].TotalPrice
+                order.Items[i].Id = item.ProductId
+                order.Items[i].OrderId = orderId
+                order.Items[i].CreatedAt = item.CreatedAt</span>
+        }
+
+        // Insert the order
+        <span class="cov0" title="0">orderQuery := `INSERT INTO "order" (id, user_id, total_price, created_at, updated_at) 
+                                          VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id`
+
+        _, err = tx.Exec(context.Background(), orderQuery, orderId, order.Order.UserId, totalSum)
+        if err != nil </span><span class="cov0" title="0">{
+                return &amp;models.OrderCreateRequest{}, err
+        }</span>
+
+        // Insert the order items
+        <span class="cov0" title="0">itemQuery := `INSERT INTO "orderiteam" (id, quantity, order_id, product_id, price, total, created_at, updated_at) 
+                                         VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
+
+        for _, item := range order.Items </span><span class="cov0" title="0">{
+                itemId := uuid.New().String()
+                _, err = tx.Exec(context.Background(), itemQuery, itemId, item.Quantity, orderId, item.ProductId, item.Price, item.TotalPrice)
+                if err != nil </span><span class="cov0" title="0">{
+                        return &amp;models.OrderCreateRequest{}, err
+                }</span>
+        }
+
+        <span class="cov0" title="0">order.Order.Id = orderId
+        order.Order.TotalPrice = totalSum
+
+        return order, tx.Commit(context.Background())</span>
+}
+
+func (r *OrderRepo) Update(ctx context.Context, id string, updatedOrder *models.Order) (*models.OrderCreateRequest, error) <span class="cov0" title="0">{
+        // Start a transaction
+        tx, err := r.db.Begin(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to begin transaction: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov0" title="0">{
+                        tx.Rollback(ctx)
+                }</span> else<span class="cov0" title="0"> {
+                        tx.Commit(ctx)
+                }</span>
+        }()
+
+        // Update the order
+        <span class="cov0" title="0">orderUpdateQuery := `
+                UPDATE "order"
+                SET user_id = $1, total_price = $2, status = $3, updated_at = CURRENT_TIMESTAMP
+                WHERE id = $4 AND deleted_at IS NULL
+                RETURNING id, user_id, total_price, status, created_at, updated_at
+        `
+        var order models.Order
+        err = tx.QueryRow(ctx, orderUpdateQuery, updatedOrder.UserId, updatedOrder.TotalPrice, updatedOrder.Status, id).Scan(
+                &amp;order.Id, &amp;order.UserId, &amp;order.TotalPrice, &amp;order.Status, &amp;order.CreatedAt, &amp;order.UpdatedAt,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to update and retrieve order: %w", err)
+        }</span>
+
+        // Update associated order items
+        <span class="cov0" title="0">var orderItems []models.OrderItem
+        for _, item := range updatedOrder.OrderItems </span><span class="cov0" title="0">{
+                itemUpdateQuery := `
+                        UPDATE "orderiteam"
+                        SET product_id = $1, quantity = $2, price = $3, total = $4, updated_at = CURRENT_TIMESTAMP
+                        WHERE order_id = $5 AND id = $6 AND deleted_at IS NULL
+                        RETURNING id, product_id, order_id, quantity, price, total, created_at, updated_at
+                `
+                var updatedItem models.OrderItem
+                err := tx.QueryRow(ctx, itemUpdateQuery, item.ProductId, item.Quantity, item.Price, item.TotalPrice, id, item.Id).Scan(
+                        &amp;updatedItem.Id, &amp;updatedItem.ProductId, &amp;updatedItem.OrderId, &amp;updatedItem.Quantity, &amp;updatedItem.Price, &amp;updatedItem.TotalPrice, &amp;updatedItem.CreatedAt, &amp;updatedItem.UpdatedAt,
+                )
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("failed to update and retrieve order item with ID %s: %w", item.Id, err)
+                }</span>
+                <span class="cov0" title="0">orderItems = append(orderItems, updatedItem)</span>
+        }
+
+        // Return the updated order and its items
+        <span class="cov0" title="0">orderCreateRequest := &amp;models.OrderCreateRequest{
+                Order: models.Order{
+                        Id:         order.Id,
+                        UserId:     order.UserId,
+                        TotalPrice: order.TotalPrice,
+                        Status:     order.Status,
+                        CreatedAt:  order.CreatedAt,
+                        UpdatedAt:  order.UpdatedAt,
+                },
+                Items: orderItems,
+        }
+
+        return orderCreateRequest, nil</span>
+}
+
+func (o *OrderRepo) GetAll(ctx context.Context, request *models.GetAllOrdersRequest) (*[]models.OrderCreateRequest, error) <span class="cov0" title="0">{
+        var (
+                orders     []models.OrderCreateRequest
+                created_at sql.NullString
+                updated_at sql.NullString
+        )
+
+        // Query to retrieve all orders
+        orderQuery := `
+                SELECT id, user_id, total_price, status, created_at, updated_at
+                FROM "order"
+        `
+        rows, err := o.db.Query(ctx, orderQuery)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to retrieve orders: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer rows.Close()
+
+        // Iterate over the retrieved orders
+        for rows.Next() </span><span class="cov0" title="0">{
+                var order models.Order
+                err = rows.Scan(&amp;order.Id, &amp;order.UserId, &amp;order.TotalPrice, &amp;order.Status, &amp;created_at, &amp;updated_at)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("failed to scan order: %w", err)
+                }</span>
+
+                // Query to retrieve order items for the current order
+                <span class="cov0" title="0">orderItemQuery := `
+                        SELECT id, product_id, order_id, quantity, price, total, created_at, updated_at
+                        FROM "orderiteam"
+                        WHERE order_id = $1
+                `
+                itemRows, err := o.db.Query(ctx, orderItemQuery, order.Id)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("failed to retrieve items for order %s: %w", order.Id, err)
+                }</span>
+                <span class="cov0" title="0">defer itemRows.Close()
+
+                var orderItems []models.OrderItem
+                for itemRows.Next() </span><span class="cov0" title="0">{
+                        var item models.OrderItem
+                        err = itemRows.Scan(&amp;item.Id, &amp;item.ProductId, &amp;item.OrderId, &amp;item.Quantity, &amp;item.Price, &amp;item.TotalPrice, &amp;created_at, &amp;updated_at)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return nil, fmt.Errorf("failed to scan order item: %w", err)
+                        }</span>
+                        <span class="cov0" title="0">orderItems = append(orderItems, models.OrderItem{
+                                Id:         item.Id,
+                                ProductId:  item.ProductId,
+                                OrderId:    item.OrderId,
+                                Quantity:   item.Quantity,
+                                Price:      item.Price,
+                                TotalPrice: item.TotalPrice,
+                                CreatedAt:  created_at.String,
+                                UpdatedAt:  updated_at.String,
+                        })</span>
+                }
+
+                <span class="cov0" title="0">orders = append(orders, models.OrderCreateRequest{
+                        Order: models.Order{
+                                Id:         order.Id,
+                                UserId:     order.UserId,
+                                TotalPrice: order.TotalPrice,
+                                Status:     order.Status,
+                                CreatedAt:  created_at.String,
+                                UpdatedAt:  updated_at.String,
+                        },
+                        Items: orderItems,
+                })</span>
+        }
+
+        <span class="cov0" title="0">if err = rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">return &amp;orders, nil</span>
+}
+
+func (r *OrderRepo) GetOrder(ctx context.Context, id string) (*models.OrderCreateRequest, error) <span class="cov0" title="0">{
+        var (
+                created_at sql.NullString
+                updated_at sql.NullString
+        )
+
+        // Query to retrieve the specific order by ID
+        orderQuery := `
+                SELECT id, user_id, total_price, status, created_at, updated_at
+                FROM "order"
+                WHERE id = $1
+        `
+
+        var order models.Order
+        err := r.db.QueryRow(ctx, orderQuery, id).Scan(&amp;order.Id, &amp;order.UserId, &amp;order.TotalPrice, &amp;order.Status, &amp;created_at, &amp;updated_at)
+        if err != nil </span><span class="cov0" title="0">{
+                if err == sql.ErrNoRows </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("order not found")
+                }</span>
+                <span class="cov0" title="0">return nil, fmt.Errorf("failed to retrieve order: %w", err)</span>
+        }
+
+        // Assigning created_at and updated_at after handling NullString
+        <span class="cov0" title="0">order.CreatedAt = created_at.String
+        order.UpdatedAt = updated_at.String
+
+        // Query to retrieve order items for the current order
+        orderItemQuery := `
+                SELECT id, product_id, order_id, quantity, price, total, created_at, updated_at
+                FROM "orderiteam"
+                WHERE order_id = $1
+        `
+        itemRows, err := r.db.Query(ctx, orderItemQuery, order.Id)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to retrieve items for order %s: %w", order.Id, err)
+        }</span>
+        <span class="cov0" title="0">defer itemRows.Close()
+
+        var orderItems []models.OrderItem
+        for itemRows.Next() </span><span class="cov0" title="0">{
+                var item models.OrderItem
+                err = itemRows.Scan(&amp;item.Id, &amp;item.ProductId, &amp;item.OrderId, &amp;item.Quantity, &amp;item.Price, &amp;item.TotalPrice, &amp;created_at, &amp;updated_at)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("failed to scan order item: %w", err)
+                }</span>
+
+                // Handle NullString for item timestamps
+                <span class="cov0" title="0">item.CreatedAt = created_at.String
+                item.UpdatedAt = updated_at.String
+
+                orderItems = append(orderItems, item)</span>
+        }
+
+        <span class="cov0" title="0">if err = itemRows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("error iterating order items: %w", err)
+        }</span>
+
+        // Returning the order with its items
+        <span class="cov0" title="0">return &amp;models.OrderCreateRequest{
+                Order: order,
+                Items: orderItems,
+        }, nil</span>
+}
+
+func (r *OrderRepo) Delete(ctx context.Context, id string) error <span class="cov0" title="0">{
+
+        tx, err := r.db.Begin(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to begin transaction: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov0" title="0">{
+                        tx.Rollback(ctx)
+                }</span> else<span class="cov0" title="0"> {
+                        tx.Commit(ctx)
+                }</span>
+        }()
+
+        <span class="cov0" title="0">orderDeleteQuery := `
+                UPDATE "order"
+                SET deleted_at = CURRENT_TIMESTAMP
+                WHERE id = $1 AND deleted_at IS NULL
+        `
+        res, err := tx.Exec(ctx, orderDeleteQuery, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to update order: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">rowsAffected := res.RowsAffected()
+        if rowsAffected == 0 </span><span class="cov0" title="0">{
+                return fmt.Errorf("order not found or already deleted")
+        }</span>
+
+        <span class="cov0" title="0">itemDeleteQuery := `
+                UPDATE "orderiteam"
+                SET deleted_at = CURRENT_TIMESTAMP
+                WHERE order_id = $1 AND deleted_at IS NULL
+        `
+        _, err = tx.Exec(ctx, itemDeleteQuery, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to update order items: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package postgres
+
+import (
+        "context"
+        "fmt"
+        "food/config"
+        "food/pkg/logger"
+        "food/storage"
+        "food/storage/redis"
+
+        "github.com/jackc/pgx/v4/pgxpool"
+)
+
+type Store struct {
+        Pool               *pgxpool.Pool
+        db                 *pgxpool.Pool
+        // redis              storage.IRedisStorage
+        log                logger.LoggerI
+        user               *UserRepo
+        // auth               *AuthRepo
+        branch             *BranchRepo
+        banner                           *BannerRepo
+        category           *CategoryRepo
+        order              *OrderRepo
+        product            *ProductRepo
+        notification       *NotificationRepo
+        delivery_history   *DeliveryHistoryRepo
+        courier_assignment *CourierAssignmentRepo
+        cfg                config.Config
+}
+
+// CloseDB implements storage.IStorage.
+func (s Store) CloseDB() <span class="cov0" title="0">{
+        s.Pool.Close()
+}</span>
+
+func NewConnectionPostgres(cfg *config.Config) (storage.IStorage, error) <span class="cov0" title="0">{
+        connect, err := pgxpool.ParseConfig(fmt.Sprintf(
+                "host=%s user=%s dbname=%s password=%s port=%d ",
+                cfg.PostgresHost,
+                cfg.PostgresUser,
+                cfg.PostgresDatabase,
+                cfg.PostgresPassword,
+                cfg.PostgresPort,
+        ))
+
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">connect.MaxConns = 100
+
+        pgxpool, err := pgxpool.ConnectConfig(context.Background(), connect)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">var loggerLevel = new(string)
+        log := logger.NewLogger("app", *loggerLevel)
+        defer func() </span><span class="cov0" title="0">{
+                err := logger.Cleanup(log)
+                if err != nil </span><span class="cov0" title="0">{
+                        return
+                }</span>
+        }()
+        <span class="cov0" title="0">return &amp;Store{
+                db:  pgxpool,
+                log: logger.NewLogger("app", *loggerLevel),
+        }, nil</span>
+}
+
+func (s *Store) User() storage.IUserStorage <span class="cov0" title="0">{
+        if s.user == nil </span><span class="cov0" title="0">{
+                s.user = &amp;UserRepo{
+                        db:  s.db,
+                        log: s.log,
+                }
+        }</span>
+        <span class="cov0" title="0">return s.user</span>
+}
+
+// Auth implements storage.IStorage.
+// func (s *Store) Auth() storage.IAuthStorage {
+//         if s.auth == nil {
+//                 s.auth = &amp;AuthRepo{
+//                         user:  s.user,
+//                         db:    s.db,
+//                         log:   s.log,
+//                         redis: s.redis,
+//                 }
+//         }
+//         return s.auth
+// }
+
+// Redis implements storage.IStorage.
+func (s *Store) Redis() storage.IRedisStorage <span class="cov0" title="0">{
+        return redis.New(s.cfg)
+}</span>
+
+func (s *Store) Branch() storage.IBranchStorage <span class="cov0" title="0">{
+        if s.branch == nil </span><span class="cov0" title="0">{
+                s.branch = &amp;BranchRepo{
+                        db:  s.db,
+                        log: s.log,
+                }
+        }</span>
+        <span class="cov0" title="0">return s.branch</span>
+}
+
+func (s *Store) Banner() storage.IBannerStorage <span class="cov0" title="0">{
+        if s.banner == nil </span><span class="cov0" title="0">{
+        s.banner = &amp;BannerRepo{
+            db:  s.db,
+            log: s.log,
+        }
+    }</span>
+    <span class="cov0" title="0">return s.banner</span>
+}
+
+func (s *Store) Category() storage.ICategoryStorage <span class="cov0" title="0">{
+        if s.category == nil </span><span class="cov0" title="0">{
+                s.category = &amp;CategoryRepo{
+                        db:  s.db,
+                        log: s.log,
+                }
+        }</span>
+        <span class="cov0" title="0">return s.category</span>
+}
+
+func (s *Store) Order() storage.IOrderStorage <span class="cov0" title="0">{
+        if s.order == nil </span><span class="cov0" title="0">{
+                s.order = &amp;OrderRepo{
+                        db:  s.db,
+                        log: s.log,
+                }
+        }</span>
+        <span class="cov0" title="0">return s.order</span>
+}
+
+func (s *Store) Product() storage.IProductStorage <span class="cov0" title="0">{
+        if s.product == nil </span><span class="cov0" title="0">{
+                s.product = &amp;ProductRepo{
+                        db:  s.db,
+                        log: s.log,
+                }
+        }</span>
+        <span class="cov0" title="0">return s.product</span>
+}
+
+// CourierAssignment implements storage.IStorage.
+func (s *Store) CourierAssignment() storage.ICourierAssignmentStorage <span class="cov0" title="0">{
+        if s.courier_assignment == nil </span><span class="cov0" title="0">{
+                s.courier_assignment = &amp;CourierAssignmentRepo{
+                        db:  s.db,
+                        log: s.log,
+                }
+        }</span>
+        <span class="cov0" title="0">return s.courier_assignment</span>
+}
+
+// DeliveryHistory implements storage.IStorage.
+func (s *Store) DeliveryHistory() storage.IDeliveryHistoryStorage <span class="cov0" title="0">{
+        if s.delivery_history == nil </span><span class="cov0" title="0">{
+                s.delivery_history = &amp;DeliveryHistoryRepo{
+                        db:  s.db,
+                        log: s.log,
+                }
+        }</span>
+        <span class="cov0" title="0">return s.delivery_history</span>
+}
+
+// Notification implements storage.IStorage.
+func (s *Store) Notification() storage.INotificationStorage <span class="cov0" title="0">{
+        if s.notification == nil </span><span class="cov0" title="0">{
+                s.notification = &amp;NotificationRepo{
+                        db:  s.db,
+                        log: s.log,
+                }
+        }</span>
+        <span class="cov0" title="0">return s.notification</span>
+}
+
+
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package postgres
+
+import (
+        "context"
+        "database/sql"
+        "fmt"
+        "food/api/models"
+        "food/pkg/logger"
+
+        "github.com/google/uuid"
+        "github.com/jackc/pgx/v4/pgxpool"
+)
+
+type ProductRepo struct {
+        db *pgxpool.Pool
+        log logger.LoggerI
+
+}
+
+func NewProduct(db *pgxpool.Pool, log logger.LoggerI) ProductRepo <span class="cov0" title="0">{
+        return ProductRepo{
+                db: db,
+                log: log,
+        }
+}</span>
+
+func (p *ProductRepo) Create(ctx context.Context, product *models.Product) (*models.Product, error) <span class="cov0" title="0">{
+
+        id := uuid.New()
+        query := `INSERT INTO "product" (
+                id,
+                category_id,
+                description,
+                price,
+                image_url,
+                name,
+                created_at,
+                updated_at)
+                VALUES($1,$2,$3,$4,$5,$6, CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) 
+        `
+
+        _, err := p.db.Exec(context.Background(), query,
+                id.String(),
+                product.CategoryId,
+                product.Description,
+                product.Price,
+                product.ImageURL,
+                product.Name,
+        )
+
+        if err != nil </span><span class="cov0" title="0">{
+                return &amp;models.Product{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.Product{
+                Id:          id.String(),
+                Name:        product.Name,
+                CategoryId:  product.CategoryId,
+                Description: product.Description,
+                Price:       product.Price,
+                ImageURL:    product.ImageURL,
+                CreatedAt:   product.CreatedAt,
+                UpdatedAt:   product.UpdatedAt,
+        }, nil</span>
+}
+
+func (p *ProductRepo) Update(ctx context.Context, product *models.Product) (*models.Product, error) <span class="cov0" title="0">{
+        query := `UPDATE "product" SET 
+                name=$1,
+                category_id=$2,
+                description=$3,
+                price=$4,
+                image_url=$5,
+                updated_at=CURRENT_TIMESTAMP
+                WHERE id = $6
+                `
+        _, err := p.db.Exec(context.Background(), query,
+                product.Name,
+                product.CategoryId,
+                product.Description,
+                product.Price,
+                product.ImageURL,
+                product.Id,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return &amp;models.Product{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.Product{
+                Id:          product.Id,
+                Name:        product.Name,
+                CategoryId:  product.CategoryId,
+                Description: product.Description,
+                Price:       product.Price,
+                ImageURL:    product.ImageURL,
+                CreatedAt:   product.CreatedAt,
+                UpdatedAt:   product.UpdatedAt,
+        }, nil</span>
+}
+
+func (p *ProductRepo) GetAll(ctx context.Context, req *models.GetAllProductsRequest) (*models.GetAllProductsResponse, error) <span class="cov0" title="0">{
+        var (
+                resp   = &amp;models.GetAllProductsResponse{}
+                filter = ""
+        )
+        offset := (req.Page - 1) * req.Limit
+
+        if req.Search != "" </span><span class="cov0" title="0">{
+                filter += fmt.Sprintf(` WHERE (name ILIKE '%%%v%%') `, req.Search)
+        }</span>
+
+        <span class="cov0" title="0">filter += fmt.Sprintf(" OFFSET %v LIMIT %v", offset, req.Limit)
+        fmt.Println("filter: ", filter)
+
+        rows, err := p.db.Query(context.Background(), `SELECT count(id) OVER(),
+        id,
+                category_id,
+        name,
+        description,
+        price,
+        image_url,
+        created_at,
+        updated_at FROM "product"`+filter)
+        if err != nil </span><span class="cov0" title="0">{
+                return resp, err
+        }</span>
+
+        <span class="cov0" title="0">for rows.Next() </span><span class="cov0" title="0">{
+                var (
+                        product     = models.Product{}
+                        category_id sql.NullString
+                        name        sql.NullString
+                        description sql.NullString
+                        price       sql.NullFloat64
+                        image_url   sql.NullString
+                        created_at  sql.NullString
+                        updated_at  sql.NullString
+                )
+                if err := rows.Scan(
+                        &amp;resp.Count,
+                        &amp;product.Id,
+                        &amp;category_id,
+                        &amp;name,
+                        &amp;description,
+                        &amp;price,
+                        &amp;image_url,
+                        &amp;created_at,
+                        &amp;updated_at); err != nil </span><span class="cov0" title="0">{
+                        return resp, err
+                }</span>
+
+                <span class="cov0" title="0">resp.Products = append(resp.Products, models.Product{
+                        Id:          product.Id,
+                        CategoryId:  category_id.String,
+                        Name:        name.String,
+                        Description: description.String,
+                        Price:       price.Float64,
+                        ImageURL:    image_url.String,
+                        CreatedAt:   created_at.String,
+                        UpdatedAt:   updated_at.String,
+                })</span>
+        }
+        <span class="cov0" title="0">return resp, nil</span>
+}
+
+func (p *ProductRepo) GetByID(ctx context.Context, id string) (*models.Product, error) <span class="cov0" title="0">{
+        var (
+                product     = models.Product{}
+                category_id sql.NullString
+                name        sql.NullString
+                description sql.NullString
+                price       sql.NullFloat64
+                image_url   sql.NullString
+                created_at  sql.NullString
+                updated_at  sql.NullString
+        )
+        if err := p.db.QueryRow(context.Background(), `SELECT id, category_id, name, description, price, image_url, created_at, updated_at FROM "product" WHERE id = $1`, id).Scan(
+                &amp;product.Id,
+                &amp;name,
+                &amp;category_id,
+                &amp;description,
+                &amp;price,
+                &amp;image_url,
+                &amp;created_at,
+                &amp;updated_at,
+        ); err != nil </span><span class="cov0" title="0">{
+                return &amp;models.Product{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.Product{
+                Id:          product.Id,
+                CategoryId:  category_id.String,
+                Name:        name.String,
+                Description: description.String,
+                Price:       price.Float64,
+                ImageURL:    image_url.String,
+                CreatedAt:   created_at.String,
+                UpdatedAt:   updated_at.String,
+        }, nil</span>
+}
+
+func (p *ProductRepo) Delete(ctx context.Context, id string) error <span class="cov0" title="0">{
+        query := `DELETE FROM "product" WHERE id = $1`
+        _, err := p.db.Exec(context.Background(), query, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package postgres
+
+import (
+        "context"
+        "database/sql"
+        "errors"
+        "fmt"
+        "food/api/models"
+        "food/pkg/logger"
+
+        "github.com/google/uuid"
+        "github.com/jackc/pgx/v4/pgxpool"
+        "golang.org/x/crypto/bcrypt"
+)
+
+type UserRepo struct {
+        db  *pgxpool.Pool
+        log logger.LoggerI
+}
+
+func NewUser(db *pgxpool.Pool, log logger.LoggerI) UserRepo <span class="cov0" title="0">{
+        return UserRepo{
+                db:  db,
+                log: log,
+        }
+}</span>
+
+func (c *UserRepo) GetByLogin(ctx context.Context, login string) (models.User, error) <span class="cov0" title="0">{
+        var (
+                name      sql.NullString
+                phone     sql.NullString
+                email     sql.NullString
+                createdat sql.NullString
+                updatedat sql.NullString
+        )
+
+        query := `SELECT 
+                id, 
+                name, 
+                phone,
+                email,
+                created_at, 
+                updated_at,
+                password
+                FROM "user" WHERE email = $1`
+
+        row := c.db.QueryRow(ctx, query, login)
+
+        user := models.User{}
+
+        err := row.Scan(
+                &amp;user.Id,
+                &amp;name,
+                &amp;phone,
+                &amp;email,
+                &amp;createdat,
+                &amp;updatedat,
+                &amp;user.Password,
+        )
+
+        if err != nil </span><span class="cov0" title="0">{
+                c.log.Error("failed to scan user by LOGIN from database", logger.Error(err))
+                return models.User{}, err
+        }</span>
+
+        <span class="cov0" title="0">user.Name = name.String
+        user.Phone = phone.String
+        user.Email = email.String
+        user.Created_at = createdat.String
+        user.Updated_at = updatedat.String
+
+        return user, nil</span>
+}
+
+func (c *UserRepo) Login(ctx context.Context, login models.User) (string, error) <span class="cov0" title="0">{
+        var hashedPass string
+
+        query := `SELECT password
+        FROM "user"
+        WHERE email = $1`
+
+        err := c.db.QueryRow(ctx, query,
+                login.Phone,
+        ).Scan(&amp;hashedPass)
+
+        if err != nil </span><span class="cov0" title="0">{
+                if err == sql.ErrNoRows </span><span class="cov0" title="0">{
+                        return "", errors.New("incorrect login")
+                }</span>
+                <span class="cov0" title="0">c.log.Error("failed to get user password from database", logger.Error(err))
+                return "", err</span>
+        }
+
+        <span class="cov0" title="0">err = bcrypt.CompareHashAndPassword([]byte(hashedPass), []byte(login.Password))
+        if err != nil </span><span class="cov0" title="0">{
+                return "", errors.New("password mismatch")
+        }</span>
+
+        <span class="cov0" title="0">return "Logged in successfully", nil</span>
+}
+
+func (u *UserRepo) Create(ctx context.Context, user *models.User) (*models.User, error) <span class="cov0" title="0">{
+
+        id := uuid.New()
+        query := `INSERT INTO "user" (
+                id,
+                email,
+                name,
+                phone,
+                password,
+                role,
+                created_at,
+                updated_at)
+                VALUES($1,$2,$3,$4,$5,$6, CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) 
+        `
+
+        _, err := u.db.Exec(context.Background(), query,
+                id.String(),
+                user.Email,
+                user.Name,
+                user.Phone,
+                user.Password,
+                user.Role,
+        )
+
+        if err != nil </span><span class="cov0" title="0">{
+                return &amp;models.User{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.User{
+                Id:         id.String(),
+                Email:      user.Email,
+                Name:       user.Name,
+                Phone:      user.Phone,
+                Password:   user.Password,
+                Role:       user.Role,
+                Created_at: user.Created_at,
+                Updated_at: user.Updated_at,
+        }, nil</span>
+}
+
+func (u *UserRepo) Update(ctx context.Context, user *models.User) (*models.User, error) <span class="cov0" title="0">{
+        query := `UPDATE "user" SET 
+                email=$1,
+                name=$2,
+                phone=$3,
+                password=$4,
+                role=$5,
+                updated_at=CURRENT_TIMESTAMP
+                WHERE id = $6
+        `
+        _, err := u.db.Exec(context.Background(), query,
+                user.Name,
+                user.Email,
+                user.Phone,
+                user.Password,
+                user.Role,
+                user.Id,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return &amp;models.User{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.User{
+                Id:         user.Id,
+                Name:       user.Name,
+                Email:      user.Email,
+                Phone:      user.Phone,
+                Password:   user.Password,
+                Role:       user.Role,
+                Created_at: user.Created_at,
+                Updated_at: user.Updated_at,
+        }, nil</span>
+}
+
+func (u *UserRepo) GetAll(ctx context.Context, req *models.GetAllUsersRequest) (*models.GetAllUsersResponse, error) <span class="cov0" title="0">{
+        var (
+                resp   = &amp;models.GetAllUsersResponse{}
+                filter = ""
+        )
+        offset := (req.Page - 1) * req.Limit
+
+        if req.Search != "" </span><span class="cov0" title="0">{
+                filter += fmt.Sprintf(` WHERE (email ILIKE '%%%v%%' OR phone ILIKE '%%%v%%') `, req.Search, req.Search)
+        }</span>
+
+        <span class="cov0" title="0">filter += fmt.Sprintf(" OFFSET %v LIMIT %v", offset, req.Limit)
+        fmt.Println("filter: ", filter)
+
+        rows, err := u.db.Query(context.Background(), `SELECT count(id) OVER(),
+        id,
+                name,
+        email,
+        phone,
+        password,
+        role,
+        created_at,
+        updated_at FROM "user"`+filter)
+        if err != nil </span><span class="cov0" title="0">{
+                return resp, err
+        }</span>
+
+        <span class="cov0" title="0">for rows.Next() </span><span class="cov0" title="0">{
+                var (
+                        user       = models.User{}
+                        name       sql.NullString
+                        email      sql.NullString
+                        phone      sql.NullString
+                        password   sql.NullString
+                        role       sql.NullString
+                        created_at sql.NullString
+                        updated_at sql.NullString
+                )
+                if err := rows.Scan(
+                        &amp;resp.Count,
+                        &amp;user.Id,
+                        &amp;name,
+                        &amp;email,
+                        &amp;phone,
+                        &amp;password,
+                        &amp;role,
+                        &amp;created_at,
+                        &amp;updated_at); err != nil </span><span class="cov0" title="0">{
+                        return resp, err
+                }</span>
+
+                <span class="cov0" title="0">resp.Users = append(resp.Users, models.User{
+                        Id:         user.Id,
+                        Name:       name.String,
+                        Email:      email.String,
+                        Phone:      phone.String,
+                        Password:   password.String,
+                        Role:       role.String,
+                        Created_at: created_at.String,
+                        Updated_at: updated_at.String,
+                })</span>
+        }
+        <span class="cov0" title="0">return resp, nil</span>
+}
+
+func (u *UserRepo) GetByID(ctx context.Context, id string) (*models.User, error) <span class="cov0" title="0">{
+        var (
+                user       = models.User{}
+                name       sql.NullString
+                email      sql.NullString
+                phone      sql.NullString
+                password   sql.NullString
+                role       sql.NullString
+                created_at sql.NullString
+                updated_at sql.NullString
+        )
+        if err := u.db.QueryRow(context.Background(), `SELECT id, name, email, phone, password, role, created_at, updated_at FROM "user" WHERE id = $1`, id).Scan(
+                &amp;user.Id,
+                &amp;name,
+                &amp;email,
+                &amp;phone,
+                &amp;password,
+                &amp;role,
+                &amp;created_at,
+                &amp;updated_at,
+        ); err != nil </span><span class="cov0" title="0">{
+                return &amp;models.User{}, err
+        }</span>
+        <span class="cov0" title="0">return &amp;models.User{
+                Id:         user.Id,
+                Name:       name.String,
+                Email:      email.String,
+                Phone:      phone.String,
+                Password:   password.String,
+                Role:       role.String,
+                Created_at: created_at.String,
+                Updated_at: updated_at.String,
+        }, nil</span>
+}
+
+func (u *UserRepo) Delete(ctx context.Context, id string) error <span class="cov0" title="0">{
+        query := `DELETE FROM "user" WHERE id = $1`
+        _, err := u.db.Exec(context.Background(), query, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

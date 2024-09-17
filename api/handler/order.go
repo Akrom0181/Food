@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // Create Order godoc
@@ -67,19 +68,50 @@ func (h *Handler) CreateOrder(c *gin.Context) {
 	c.JSON(http.StatusCreated, Response{Data: order})
 }
 
-// @ID 			get_all_orders
-// @Router 		/food/api/v1/getallorders [GET]
-// @Summary 	Get All Products
-// @Description Retrieve all products
-// @Tags 		order
-// @Accept 		json
-// @Produce 	json
-// @Param 		search query string false "Search orders by name or description"
-// @Param 		page   query uint64 false "Page number"
-// @Param 		limit  query uint64 false "Limit number of results per page"
-// @Success 	200 {object} []models.OrderCreateRequest
-// @Response 	400 {object} Response{data=string} "Bad Request"
-// @Failure 	500 {object} Response{data=string} "Server error"
+// @ID             get_order
+// @Router         /food/api/v1/getorder/{id} [GET]
+// @Summary        get_order
+// @Description    get_order
+// @Tags           order
+// @Accept         json
+// @Produces 	   json
+// @Param          id path string true "Order Id or user Id"
+// @Success 	   200 {object} models.OrderCreateRequest
+// @Response 	   400 {object} Response{data=string} "Bad Request"
+// @Failure 	   500 {object} Response{data=string} "Server error"
+func (h *Handler) GetOrder(c *gin.Context) {
+	id := c.Param("id")
+
+	if id == "" {
+		h.log.Error("missing order id")
+		c.JSON(http.StatusBadRequest, Response{Data: "you must fill the id"})
+		return
+	}
+
+	order, err := h.storage.Order().GetOrder(c.Request.Context(), id)
+	if err != nil {
+		h.log.Error("error in Order.GetByID: " + err.Error())
+		c.JSON(http.StatusInternalServerError, Response{Data: "Server Error!"})
+		return
+	}
+
+	h.log.Info("Order retrieved successfully!")
+	c.JSON(http.StatusOK, order)
+}
+
+// @ID 			   get_all_orders
+// @Router 		   /food/api/v1/getallorders [GET]
+// @Summary 	   Get All Orders
+// @Description    Retrieve all orders
+// @Tags 		   order
+// @Accept 		   json
+// @Produce 	   json
+// @Param 		   search query string false "Search orders by name or description"
+// @Param 		   page   query uint64 false "Page number"
+// @Param 		   limit  query uint64 false "Limit number of results per page"
+// @Success 	   200 {object} []models.OrderCreateRequest
+// @Response 	   400 {object} Response{data=string} "Bad Request"
+// @Failure 	   500 {object} Response{data=string} "Server error"
 func (h *Handler) GetAllOrders(c *gin.Context) {
 	var req = &models.GetAllOrdersRequest{}
 
@@ -154,84 +186,74 @@ func (h *Handler) GetAllOrders(c *gin.Context) {
 // 	h.log.Info("Order status changed successfully")
 // }
 
-// // @ID 			update_order
-// // @Router 		/food/api/v1/updateorder/{id} [PUT]
-// // @Summary 	Update Order
-// // @Description Update an existing order
-// // @Tags 		order
-// // @Accept 		json
-// // @Produce 	json
-// // @Param 		id path string true "Order ID"
-// // @Param 		Order body models.UpdateOrder true "UpdateOrderRequest"
-// // @Success 	200 {object} models.Order
-// // @Response 	400 {object} Response{data=string} "Bad Request"
-// // @Failure 	500 {object} Response{data=string} "Server error"
-// func (h *Handler) UpdateOrder(c *gin.Context) {
-// 	var updateOrder models.UpdateOrder
+// @ID 			update_order
+// @Router 		/food/api/v1/updateorder/{id} [PUT]
+// @Summary 	Update Order
+// @Description Update an existing order
+// @Tags 		order
+// @Accept 		json
+// @Produce 	json
+// @Param 		id path string true "Order ID"
+// @Param 		Order body models.OrderUpdateS true "UpdateOrderRequest"
+// @Success 	200 {object} models.OrderCreateRequest
+// @Response 	400 {object} Response{data=string} "Bad Request"
+// @Failure 	500 {object} Response{data=string} "Server error"
+func (h *Handler) UpdateOrder(c *gin.Context) {
+	var updateOrder *models.Order
 
-// 	if err := c.ShouldBindJSON(&updateOrder); err != nil {
-// 		h.log.Error(err.Error() + " : " + "error Order Should Bind Json!")
-// 		c.JSON(http.StatusBadRequest, "Please, enter valid data!")
-// 		return
-// 	}
+	if err := c.ShouldBindJSON(&updateOrder); err != nil {
+		h.log.Error(err.Error() + " : " + "error Order Should Bind Json!")
+		c.JSON(http.StatusBadRequest, "Please, enter valid data!")
+		return
+	}
 
-// 	id := c.Param("id")
-// 	order, err := h.storage.Order().GetByID(c.Request.Context(), id)
-// 	if err != nil {
-// 		h.log.Error(err.Error() + ":" + "Error Order Not Found")
-// 		c.JSON(http.StatusBadRequest, "Order not found!")
-// 		return
-// 	}
+	id := c.Param("id")
 
-// 	order.UserId = updateOrder.UserId
-// 	order.TotalPrice = updateOrder.TotalPrice
-// 	order.Status = updateOrder.Status
+	resp, err := h.storage.Order().Update(c.Request.Context(), id, updateOrder)
+	if err != nil {
+		h.log.Error(err.Error() + ":" + "Error Order Update")
+		c.JSON(http.StatusInternalServerError, "Server error!")
+		return
+	}
 
-// 	resp, err := h.storage.Order().Update(c.Request.Context(), order)
-// 	if err != nil {
-// 		h.log.Error(err.Error() + ":" + "Error Order Update")
-// 		c.JSON(http.StatusInternalServerError, "Server error!")
-// 		return
-// 	}
+	h.log.Info("Order updated successfully!")
+	c.JSON(http.StatusOK, resp)
+}
 
-// 	h.log.Info("Order updated successfully!")
-// 	c.JSON(http.StatusOK, resp)
-// }
+// @ID 			delete_order
+// @Router 		/food/api/v1/deleteorder/{id} [DELETE]
+// @Summary 	Delete order by Id
+// @Description Delete a order by its Id
+// @Tags 		order
+// @Accept 		json
+// @Produce 	json
+// @Param 		id path string true "Order Id"
+// @Success 	200 {object} Response{data=string} "Success Request"
+// @Response 	400 {object} Response{data=string} "Bad Request"
+// @Failure 	500 {object} Response{data=string} "Server error"
+func (h *Handler) DeleteOrder(c *gin.Context) {
+	id := c.Param("id")
 
-// // @ID 			delete_order
-// // @Router 		/food/api/v1/deleteorder/{id} [DELETE]
-// // @Summary 	Delete Order by ID
-// // @Description Delete an order by its ID
-// // @Tags 		order
-// // @Accept 		json
-// // @Produce 	json
-// // @Param 		id path string true "Order ID"
-// // @Success 	200 {object} Response{data=string} "Success Request"
-// // @Response 	400 {object} Response{data=string} "Bad Request"
-// // @Failure 	500 {object} Response{data=string} "Server error"
-// func (h *Handler) DeleteOrder(c *gin.Context) {
-// 	id := c.Param("id")
+	if id == "" {
+		h.log.Error("missing product id")
+		c.JSON(http.StatusBadRequest, "fill the gap with id")
+		return
+	}
 
-// 	if id == "" {
-// 		h.log.Error("missing order id")
-// 		c.JSON(http.StatusBadRequest, "fill the gap with id")
-// 		return
-// 	}
+	err := uuid.Validate(id)
+	if err != nil {
+		h.log.Error(err.Error() + ":" + "error while validating id")
+		c.JSON(http.StatusBadRequest, "please enter a valid id")
+		return
+	}
 
-// 	err := uuid.Validate(id)
-// 	if err != nil {
-// 		h.log.Error(err.Error() + ":" + "error while validating id")
-// 		c.JSON(http.StatusBadRequest, "please enter a valid id")
-// 		return
-// 	}
+	err = h.storage.Product().Delete(context.Background(), id)
+	if err != nil {
+		h.log.Error(err.Error() + ":" + "error while deleting order")
+		c.JSON(http.StatusBadRequest, "please input valid data")
+		return
+	}
 
-// 	err = h.storage.Order().Delete(context.Background(), id)
-// 	if err != nil {
-// 		h.log.Error(err.Error() + ":" + "error while deleting order")
-// 		c.JSON(http.StatusBadRequest, "please input valid data")
-// 		return
-// 	}
-
-// 	h.log.Info("Order deleted successfully!")
-// 	c.JSON(http.StatusOK, id)
-// }
+	h.log.Info("Product deleted successfully!")
+	c.JSON(http.StatusOK, id)
+}

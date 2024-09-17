@@ -43,10 +43,10 @@ func NewApi(r *gin.Engine, cfg *config.Config, storage storage.IStorage, logger 
 	v1.DELETE("/deletecategory", h.DeleteCustomer)
 
 	v1.POST("/order", h.CreateOrder)
-	// v1.GET("/getbyidorder/:id", h.GetOrderByID)
+	v1.GET("/getorder/:id", h.GetOrder)
 	v1.GET("/getallorders", h.GetAllOrders)
-	// v1.PUT("/updateorder", h.UpdateOrder)
-	// v1.DELETE("/deleteorder/:id", h.DeleteOrder)
+	v1.PUT("/updateorder", h.UpdateOrder)
+	v1.DELETE("/deleteorder/:id", h.DeleteOrder)
 	// r.PATCH("/changeorderstatus", h.ChangeStatus)
 
 	// v1.POST("createorderitem", h.CreateOrderItem)

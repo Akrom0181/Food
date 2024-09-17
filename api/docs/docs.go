@@ -760,6 +760,87 @@ const docTemplate = `{
                 }
             }
         },
+        "/food/api/v1/deleteorder/{id}": {
+            "delete": {
+                "description": "Delete a order by its Id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "Delete order by Id",
+                "operationId": "delete_order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success Request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/food/api/v1/deleteproduct/{id}": {
             "delete": {
                 "description": "Delete a product by its ID",
@@ -1164,7 +1245,7 @@ const docTemplate = `{
         },
         "/food/api/v1/getallorders": {
             "get": {
-                "description": "Retrieve all products",
+                "description": "Retrieve all orders",
                 "consumes": [
                     "application/json"
                 ],
@@ -1174,7 +1255,7 @@ const docTemplate = `{
                 "tags": [
                     "order"
                 ],
-                "summary": "Get All Products",
+                "summary": "Get All Orders",
                 "operationId": "get_all_orders",
                 "parameters": [
                     {
@@ -1612,6 +1693,72 @@ const docTemplate = `{
                 }
             }
         },
+        "/food/api/v1/getorder/{id}": {
+            "get": {
+                "description": "get_order",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "get_order",
+                "operationId": "get_order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order Id or user Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.OrderCreateRequest"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/food/api/v1/getproduct/{id}": {
             "get": {
                 "description": "Retrieve a product by its ID",
@@ -1847,6 +1994,84 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.Branch"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/food/api/v1/updateorder/{id}": {
+            "put": {
+                "description": "Update an existing order",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "Update Order",
+                "operationId": "update_order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "UpdateOrderRequest",
+                        "name": "Order",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.OrderUpdateS"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.OrderCreateRequest"
                         }
                     },
                     "400": {
@@ -2514,6 +2739,23 @@ const docTemplate = `{
                 }
             }
         },
+        "models.OrderUpdateS": {
+            "type": "object",
+            "properties": {
+                "order_items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.UpdateOrderItem"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                },
+                "total_price": {
+                    "type": "number"
+                }
+            }
+        },
         "models.Product": {
             "type": "object",
             "properties": {
@@ -2610,6 +2852,20 @@ const docTemplate = `{
             "properties": {
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "models.UpdateOrderItem": {
+            "type": "object",
+            "properties": {
+                "price": {
+                    "type": "number"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
                 }
             }
         },

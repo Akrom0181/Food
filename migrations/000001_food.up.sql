@@ -51,28 +51,6 @@ CREATE TABLE IF NOT EXISTS "order" (
   updated_at TIMESTAMP DEFAULT now()
 );
 
--- CREATE TABLE IF NOT EXISTS "orders" (
---     "id" UUID PRIMARY KEY,
---     "total_price" DECIMAL(10, 2) NOT NULL,  -- Buyurtmaning umumiy narxi
---     "status" order_status DEFAULT 'yangi',  -- Buyurtma holati uchun enum
---     "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Buyurtma yaratilgan vaqt
---     "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Buyurtma yangilangan vaqt
---     "customer_id" UUID,  -- Foydalanuvchi jadvaliga bog'lanadi
---     FOREIGN KEY ("customer_id") REFERENCES "customer"("id")  -- Foydalanuvchi jadvaliga bog'lanadi
--- );
-
-
--- CREATE TABLE IF NOT EXISTS "order_items" (
---     "id" UUID PRIMARY KEY,
---     "quantity" INT NOT NULL,  -- Mahsulot miqdori
---     "price" DECIMAL(10, 2) NOT NULL,  -- Mahsulotning bitta narxi
---     "total" DECIMAL(10, 2) GENERATED ALWAYS AS (price * quantity) STORED,  -- Jami narx
---     "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Mahsulot qo'shilgan vaqt
---     "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Ma'lumot yangilangan vaqt
---     "order_id" REFERENCES "orders"("id"),  -- Buyurtma bilan bog'lanadi
---     "product_id" REFERENCES "product"("id")  -- Mahsulot bilan bog'lanadi
--- );
-
 CREATE TABLE IF NOT EXISTS "payment" (
   id UUID PRIMARY KEY DEFAULT,
   user_id UUID NOT NULL REFERENCES "user"(id),
@@ -92,7 +70,7 @@ CREATE TABLE IF NOT EXISTS "courierassignment" (
 );
 
 CREATE TABLE IF NOT EXISTS "notification" (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES "user"(id),
   message TEXT NOT NULL,
   is_read BOOLEAN DEFAULT false,
@@ -118,7 +96,7 @@ CREATE TABLE IF NOT EXISTS "locations" (
 );
 
 CREATE TABLE IF NOT EXISTS "combos" (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY,
   name VARCHAR,
   description TEXT,
   price DECIMAL(10, 2),
@@ -126,15 +104,6 @@ CREATE TABLE IF NOT EXISTS "combos" (
   updated_at TIMESTAMP DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS "combo_items" (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  order_id UUID UNIQUE REFERENCES "order"(id),
-  combo_id UUID UNIQUE REFERENCES "combos"(id),
-  product_id UUID UNIQUE REFERENCES "product"(id),
-  quantity INTEGER,
-  created_at TIMESTAMP DEFAULT now(),
-  updated_at TIMESTAMP DEFAULT now()
-);
 
 CREATE TABLE IF NOT EXISTS "banner" (
   image_url VARCHAR,

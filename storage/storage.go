@@ -63,9 +63,9 @@ type IProductStorage interface {
 type IOrderStorage interface {
 	Create(ctx context.Context, request *models.OrderCreateRequest) (*models.OrderCreateRequest, error)
 	GetAll(ctx context.Context, request *models.GetAllOrdersRequest) (*[]models.OrderCreateRequest, error)
-	// GetByID(ctx context.Context, id string) (*models.Order, error)
-	// Update(context.Context, *models.Order) (*models.Order, error)
-	// Delete(context.Context, string) error
+	GetOrder(ctx context.Context, id string) (*models.OrderCreateRequest, error)
+	Update(ctx context.Context, id string, updatedOrder *models.Order) (*models.OrderCreateRequest, error)
+	Delete(ctx context.Context, id string) error
 	// ChangeStatus(context.Context, *models.ChangeStatus) (string, error)
 }
 

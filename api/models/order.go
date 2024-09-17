@@ -40,10 +40,15 @@ type SwaggerOrderCreate struct {
 }
 
 type OrderUpdate struct {
-	Id         string  `json:"id"`
-	UserId     string  `json:"user_id,omitempty"`
-	TotalPrice float64 `json:"total_price"`
-	Status     string  `json:"status"`
+	TotalPrice float64     `json:"total_price"`
+	Status     string      `json:"status"`
+	OrderItems []OrderItem `json:"order_items,omitempty"`
+}
+
+type OrderUpdateS struct {
+	TotalPrice float64           `json:"total_price"`
+	Status     string            `json:"status"`
+	OrderItems []UpdateOrderItem `json:"order_items,omitempty"`
 }
 
 type OrderPrimaryKey struct {
@@ -70,3 +75,4 @@ type SwaggerOrderCreateRequest struct {
 	Order SwaggerOrderCreate  `json:"order"`
 	Items []SwaggerOrderItems `json:"items"`
 }
+

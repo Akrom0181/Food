@@ -1,7 +1,5 @@
 package models
 
-import "time"
-
 type Payment struct {
 	Id            string `json:"id"`
 	UserId        string `json:"user_id"`
@@ -24,12 +22,12 @@ type UpdatePayment struct {
 }
 
 type GetPayment struct {
-	Id            string    `json:"id"`
-	UserId        string    `json:"user_id"`
-	OrderId       string    `json:"order_id"`
-	IsPaid        bool      `json:"is_paid"`
-	PaymentMethod string    `json:"payment_method"`
-	CreatedAt     time.Time `json:"created_at"`
+	Id            string `json:"id"`
+	UserId        string `json:"user_id"`
+	OrderId       string `json:"order_id"`
+	IsPaid        bool   `json:"is_paid"`
+	PaymentMethod string `json:"payment_method"`
+	CreatedAt     string `json:"created_at"`
 }
 
 type GetAllPaymentsRequest struct {

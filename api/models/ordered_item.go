@@ -16,13 +16,12 @@ type CreateOrderItem struct {
 	OrderId    string  `json:"order_id"`
 	Quantity   int     `json:"quantity"`
 	Price      float64 `json:"price"`
-	TotalPrice float64 `json:"total_price"`
+	TotalPrice int64   `json:"total_price"`
 }
 
 type UpdateOrderItem struct {
 	ProductId string  `json:"product_id"`
 	Quantity  int     `json:"quantity"`
-	Options   string  `json:"options"`
 	Price     float64 `json:"price"`
 }
 
@@ -51,8 +50,8 @@ type OrderItemsGetListResponse struct {
 }
 
 type SwaggerOrderItems struct {
-	ProductId string `json:"product_id,omitempty"`
-	Quantity  int    `json:"quantity,omitempty"`
+	ProductId string  `json:"product_id,omitempty"`
+	Quantity  int     `json:"quantity,omitempty"`
 }
 
 // type OrderItems struct {

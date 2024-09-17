@@ -85,6 +85,70 @@ func (o *OrderRepo) Create(ctx context.Context, order *models.OrderCreateRequest
 	return order, tx.Commit(context.Background())
 }
 
+func (r *OrderRepo) Update(ctx context.Context, id string, updatedOrder *models.Order) (*models.OrderCreateRequest, error) {
+	// Start a transaction
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback(ctx)
+		} else {
+			tx.Commit(ctx)
+		}
+	}()
+
+	// Update the order
+	orderUpdateQuery := `
+		UPDATE "order"
+		SET user_id = $1, total_price = $2, status = $3, updated_at = CURRENT_TIMESTAMP
+		WHERE id = $4 AND deleted_at IS NULL
+		RETURNING id, user_id, total_price, status, created_at, updated_at
+	`
+	var order models.Order
+	err = tx.QueryRow(ctx, orderUpdateQuery, updatedOrder.UserId, updatedOrder.TotalPrice, updatedOrder.Status, id).Scan(
+		&order.Id, &order.UserId, &order.TotalPrice, &order.Status, &order.CreatedAt, &order.UpdatedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update and retrieve order: %w", err)
+	}
+
+	// Update associated order items
+	var orderItems []models.OrderItem
+	for _, item := range updatedOrder.OrderItems {
+		itemUpdateQuery := `
+			UPDATE "orderiteam"
+			SET product_id = $1, quantity = $2, price = $3, total = $4, updated_at = CURRENT_TIMESTAMP
+			WHERE order_id = $5 AND id = $6 AND deleted_at IS NULL
+			RETURNING id, product_id, order_id, quantity, price, total, created_at, updated_at
+		`
+		var updatedItem models.OrderItem
+		err := tx.QueryRow(ctx, itemUpdateQuery, item.ProductId, item.Quantity, item.Price, item.TotalPrice, id, item.Id).Scan(
+			&updatedItem.Id, &updatedItem.ProductId, &updatedItem.OrderId, &updatedItem.Quantity, &updatedItem.Price, &updatedItem.TotalPrice, &updatedItem.CreatedAt, &updatedItem.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to update and retrieve order item with ID %s: %w", item.Id, err)
+		}
+		orderItems = append(orderItems, updatedItem)
+	}
+
+	// Return the updated order and its items
+	orderCreateRequest := &models.OrderCreateRequest{
+		Order: models.Order{
+			Id:         order.Id,
+			UserId:     order.UserId,
+			TotalPrice: order.TotalPrice,
+			Status:     order.Status,
+			CreatedAt:  order.CreatedAt,
+			UpdatedAt:  order.UpdatedAt,
+		},
+		Items: orderItems,
+	}
+
+	return orderCreateRequest, nil
+}
+
 func (o *OrderRepo) GetAll(ctx context.Context, request *models.GetAllOrdersRequest) (*[]models.OrderCreateRequest, error) {
 	var (
 		orders     []models.OrderCreateRequest
@@ -142,18 +206,14 @@ func (o *OrderRepo) GetAll(ctx context.Context, request *models.GetAllOrdersRequ
 			})
 		}
 
-		// Add order items to the order struct
-		// order.OrderItems = orderItems
-
-		// Append the order to the result set
 		orders = append(orders, models.OrderCreateRequest{
 			Order: models.Order{
 				Id:         order.Id,
-                UserId:     order.UserId,
-                TotalPrice: order.TotalPrice,
-                Status:     order.Status,
-                CreatedAt:  created_at.String,
-                UpdatedAt:  updated_at.String,
+				UserId:     order.UserId,
+				TotalPrice: order.TotalPrice,
+				Status:     order.Status,
+				CreatedAt:  created_at.String,
+				UpdatedAt:  updated_at.String,
 			},
 			Items: orderItems,
 		})
@@ -164,4 +224,110 @@ func (o *OrderRepo) GetAll(ctx context.Context, request *models.GetAllOrdersRequ
 	}
 
 	return &orders, nil
+}
+
+func (r *OrderRepo) GetOrder(ctx context.Context, id string) (*models.OrderCreateRequest, error) {
+	var (
+		created_at sql.NullString
+		updated_at sql.NullString
+	)
+
+	// Query to retrieve the specific order by ID
+	orderQuery := `
+		SELECT id, user_id, total_price, status, created_at, updated_at
+		FROM "order"
+		WHERE id = $1
+	`
+
+	var order models.Order
+	err := r.db.QueryRow(ctx, orderQuery, id).Scan(&order.Id, &order.UserId, &order.TotalPrice, &order.Status, &created_at, &updated_at)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("order not found")
+		}
+		return nil, fmt.Errorf("failed to retrieve order: %w", err)
+	}
+
+	// Assigning created_at and updated_at after handling NullString
+	order.CreatedAt = created_at.String
+	order.UpdatedAt = updated_at.String
+
+	// Query to retrieve order items for the current order
+	orderItemQuery := `
+		SELECT id, product_id, order_id, quantity, price, total, created_at, updated_at
+		FROM "orderiteam"
+		WHERE order_id = $1
+	`
+	itemRows, err := r.db.Query(ctx, orderItemQuery, order.Id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve items for order %s: %w", order.Id, err)
+	}
+	defer itemRows.Close()
+
+	var orderItems []models.OrderItem
+	for itemRows.Next() {
+		var item models.OrderItem
+		err = itemRows.Scan(&item.Id, &item.ProductId, &item.OrderId, &item.Quantity, &item.Price, &item.TotalPrice, &created_at, &updated_at)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan order item: %w", err)
+		}
+
+		// Handle NullString for item timestamps
+		item.CreatedAt = created_at.String
+		item.UpdatedAt = updated_at.String
+
+		orderItems = append(orderItems, item)
+	}
+
+	if err = itemRows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating order items: %w", err)
+	}
+
+	// Returning the order with its items
+	return &models.OrderCreateRequest{
+		Order: order,
+		Items: orderItems,
+	}, nil
+}
+
+func (r *OrderRepo) Delete(ctx context.Context, id string) error {
+
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback(ctx)
+		} else {
+			tx.Commit(ctx)
+		}
+	}()
+
+	orderDeleteQuery := `
+		UPDATE "order"
+		SET deleted_at = CURRENT_TIMESTAMP
+		WHERE id = $1 AND deleted_at IS NULL
+	`
+	res, err := tx.Exec(ctx, orderDeleteQuery, id)
+	if err != nil {
+		return fmt.Errorf("failed to update order: %w", err)
+	}
+
+	rowsAffected := res.RowsAffected()
+	if rowsAffected == 0 {
+		return fmt.Errorf("order not found or already deleted")
+	}
+
+	itemDeleteQuery := `
+		UPDATE "orderiteam"
+		SET deleted_at = CURRENT_TIMESTAMP
+		WHERE order_id = $1 AND deleted_at IS NULL
+	`
+	_, err = tx.Exec(ctx, itemDeleteQuery, id)
+	if err != nil {
+		return fmt.Errorf("failed to update order items: %w", err)
+	}
+
+	return nil
 }
