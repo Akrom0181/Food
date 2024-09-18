@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"food/pkg/helper"
 	"net/http"
 
@@ -33,6 +34,8 @@ func (h *Handler) UploadFiles(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload files"})
 		return
 	}
+
+	fmt.Println(resp)
 
 	c.JSON(http.StatusOK, resp)
 }
