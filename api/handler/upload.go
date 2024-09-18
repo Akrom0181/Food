@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// upload Multiple Files godoc
+// Upload Multiple Files godoc
 // @ID           upload_multiple_files
 // @Router       /food/api/v1/uploadfiles [POST]
 // @Summary      Upload Multiple Files
@@ -35,10 +35,14 @@ func (h *Handler) UploadFiles(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(resp)
+	// Log the generated URLs
+	for _, url := range resp.Url {
+		fmt.Printf("Uploaded file ID: %s, URL: %s\n", url.Id, url.Url)
+	}
 
 	c.JSON(http.StatusOK, resp)
 }
+
 
 // delete file godoc
 // @ID           delete_file
