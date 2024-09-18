@@ -2,14 +2,13 @@ package helper
 
 import (
 	"context"
-	"food/api/models"
-	"os"
-
 	"fmt"
+	"food/api/models"
 	"io"
 	"log"
 	"mime/multipart"
 	"net/url"
+	"os"
 
 	firebase "firebase.google.com/go"
 	"github.com/google/uuid"
@@ -50,7 +49,7 @@ func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, erro
 
 	// Loop through uploaded files and upload to Firebase Storage
 	for _, v := range file.File["file"] {
-		id := uuid.New().String()
+		id := uuid.New().String() // Generate a unique token for download
 		imageFile, err := v.Open()
 		if err != nil {
 			return nil, err
@@ -70,10 +69,13 @@ func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, erro
 		}
 		writer.Close()
 
-		// Generate the download URL
+		// URL encode the filename to handle spaces and special characters
 		encodedFileName := url.PathEscape(fileName)
+
+		// Generate the download URL
 		fileURL := fmt.Sprintf("https://firebasestorage.googleapis.com/v0/b/food-8ceb4.appspot.com/o/%s?alt=media&token=%s", encodedFileName, id)
 
+		// Append to the response
 		resp.Url = append(resp.Url, &models.Url{
 			Id:  id,
 			Url: fileURL,
