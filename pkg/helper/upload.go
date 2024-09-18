@@ -15,7 +15,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-
+// UploadFiles uploads multiple files to Firebase Storage
 // UploadFiles uploads multiple files to Firebase Storage
 func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, error) {
 	var resp models.MultipleFileUploadResponse
@@ -59,6 +59,7 @@ func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, erro
 		defer imageFile.Close()
 
 		fileName := v.Filename
+		log.Println("Uploading file:", fileName) // Log filename being uploaded
 		objectHandle := bucketHandle.Object(fileName)
 		writer := objectHandle.NewWriter(context.Background())
 
@@ -77,7 +78,7 @@ func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, erro
 
 		// Generate the download URL
 		fileURL := fmt.Sprintf("https://firebasestorage.googleapis.com/v0/b/food-8ceb4.appspot.com/o/%s?alt=media&token=%s", encodedFileName, id)
-		log.Println("Generated file URL:", fileURL)
+		log.Println("Generated file URL:", fileURL) // Log the generated URL
 
 		// Append to the response
 		resp.Url = append(resp.Url, &models.Url{
@@ -88,7 +89,6 @@ func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, erro
 
 	return &resp, nil
 }
-
 
 func DeleteFile(fileName string) error {
 	ctx := context.Background()
