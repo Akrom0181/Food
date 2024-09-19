@@ -1,14 +1,15 @@
 package api
 
 import (
-	"errors"
+	// "errors"
 	_ "food/api/docs"
 	"food/api/handler"
 	"food/config"
 	"food/pkg/logger"
 	"food/service"
 	"food/storage"
-	"net/http"
+
+	// "net/http"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -29,8 +30,8 @@ func NewApi(r *gin.Engine, cfg *config.Config, storage storage.IStorage, logger 
 
 	v1 := r.Group("/food/api/v1")
 
-	r.POST("/food/api/v1/uploadfiles")
-	r.DELETE("/food/api/v1/deletefiles")
+	v1.POST("/uploadfiles", h.UploadFiles)
+	v1.DELETE("/deletefiles", h.DeleteFile)
 
 	v1.POST("/sendcode", h.UserRegister)
 	v1.POST("/user/verifycode", h.UserRegisterConfirm)
@@ -99,10 +100,14 @@ func customCORSMiddleware() gin.HandlerFunc {
 	}
 }
 
-func authMiddleware(c *gin.Context) {
-	auth := c.GetHeader("Authorization")
-	if auth == "" {
-		c.AbortWithError(http.StatusUnauthorized, errors.New("unauthorized"))
-	}
-	c.Next()
-}
+// func authMiddleware(c *gin.Context) {
+// 	auth := c.GetHeader("Authorization")
+// 	if auth == "" {
+// 		c.AbortWithError(http.StatusUnauthorized, errors.New("unauthorized"))
+// 	}
+// 	c.Next()
+// }
+
+// https://firebasestorage.googleapis.com/v0/b/food-8ceb4.appspot.com/o/Screenshot%202024-08-29%20at%2016.03.43.png?alt=media&token=d031a952-29d7-4f16-8e18-2835b7f47c7a
+
+// https://firebasestorage.googleapis.com/v0/b/food-8ceb4.appspot.com/o/b11732f7-5310-46ee-9904-74bd23bda809?alt=media&token=b11732f7-5310-46ee-9904-74bd23bda809
