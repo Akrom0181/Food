@@ -21,7 +21,7 @@ import (
 func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, error) {
 	var resp models.MultipleFileUploadResponse
 
-	filePath := filepath.Join("../", "serviceAccountKey.json")
+	filePath := filepath.Join("./", "serviceAccountKey.json")
 
 	// Initialize Firebase App with service account key
 	opt := option.WithCredentialsFile(filePath)
@@ -63,7 +63,7 @@ func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, erro
 		writer.Close()
 
 		encodedFileName := url.PathEscape(fileName)
-		fileURL := fmt.Sprintf("https://firebasestorage.googleapis.com/v0/b/ecommece-e1b2e.appspot.com/o/%s?alt=media&token=%s", encodedFileName, id)
+		fileURL := fmt.Sprintf("https://firebasestorage.googleapis.com/v0/b/food-8ceb4.appspot.com/o/%s?alt=media&token=%s", encodedFileName, id)
 
 		resp.Url = append(resp.Url, &models.Url{
 			Id:  id,
