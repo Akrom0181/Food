@@ -732,13 +732,15 @@ paths:
       description: Delete File
       operationId: delete_file
       parameters:
-      - description: id
+      - description: File ID
         in: query
         name: id
         required: true
         type: string
+      produces:
+      - application/json
       responses:
-        "200":
+        "204":
           description: Success Request
           schema:
             allOf:
@@ -1660,6 +1662,8 @@ paths:
         name: file
         required: true
         type: array
+      produces:
+      - application/json
       responses:
         "200":
           description: Success Request

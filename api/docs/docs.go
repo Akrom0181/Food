@@ -688,6 +688,9 @@ const docTemplate = `{
                 "consumes": [
                     "multipart/form-data"
                 ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Upload File"
                 ],
@@ -696,14 +699,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "description": "File ID",
                         "name": "id",
                         "in": "query",
                         "required": true
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "204": {
                         "description": "Success Request",
                         "schema": {
                             "allOf": [
@@ -2274,6 +2277,9 @@ const docTemplate = `{
                 "description": "Upload Multiple Files",
                 "consumes": [
                     "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
                 ],
                 "tags": [
                     "Upload File"

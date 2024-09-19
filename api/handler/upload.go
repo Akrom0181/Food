@@ -15,7 +15,7 @@ import (
 // @Description  Upload Multiple Files
 // @Tags         Upload File
 // @Accept       multipart/form-data
-// @Procedure    json
+// @Produce      json
 // @Param        file formData []file true "File to upload"
 // @Success      200 {object} Response{data=string} "Success Request"
 // @Response     400 {object} Response{data=string} "Bad Request"
@@ -43,17 +43,16 @@ func (h *Handler) UploadFiles(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-
-// delete file godoc
+// Delete File godoc
 // @ID           delete_file
 // @Router       /food/api/v1/deletefile [DELETE]
 // @Summary      Delete File
 // @Description  Delete File
 // @Tags         Upload File
 // @Accept       multipart/form-data
-// @Procedure    json
-// @Param        id query string true "id"
-// @Success      200 {object} Response{data=string} "Success Request"
+// @Produce      json
+// @Param        id query string true "File ID"
+// @Success      204 {object} Response{data=string} "Success Request"
 // @Response     400 {object} Response{data=string} "Bad Request"
 // @Failure      500 {object} Response{data=string} "Server error"
 func (h *Handler) DeleteFile(c *gin.Context) {

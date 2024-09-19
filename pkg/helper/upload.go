@@ -2,12 +2,11 @@ package helper
 
 import (
 	"context"
-	"fmt"
 	"food/api/models"
+	"fmt"
 	"io"
 	"log"
 	"mime/multipart"
-	"net/url"
 	"os"
 
 	firebase "firebase.google.com/go"
@@ -15,12 +14,10 @@ import (
 	"google.golang.org/api/option"
 )
 
-// UploadFiles uploads multiple files to Firebase Storage
-// UploadFiles uploads multiple files to Firebase Storage
 func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, error) {
 	var resp models.MultipleFileUploadResponse
 
-	// Load Firebase credentials from environment variable
+	// Load Firebase credentials
 	filePath := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
 	if filePath == "" {
 		return nil, fmt.Errorf("google credentials path not set")
@@ -41,16 +38,14 @@ func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, erro
 		return nil, err
 	}
 
-	// Get a reference to the storage bucket
-	bucketHandle, err := client.Bucket("food-8ceb4.appspot.com")
+	bucketName := "food-8ceb4.appspot.com"
+	bucketHandle, err := client.Bucket(bucketName)
 	if err != nil {
-		log.Println("Bucket handle error:", err)
-		return nil, err
+		fmt.Println("error bucket name: ", err)
 	}
 
-	// Loop through uploaded files and upload to Firebase Storage
 	for _, v := range file.File["file"] {
-		id := uuid.New().String() // Generate a unique token for download
+		id := uuid.New().String()
 		imageFile, err := v.Open()
 		if err != nil {
 			log.Println("Error opening file:", err)
@@ -59,28 +54,17 @@ func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, erro
 		defer imageFile.Close()
 
 		fileName := v.Filename
-		log.Println("Uploading file:", fileName) // Log filename being uploaded
 		objectHandle := bucketHandle.Object(fileName)
 		writer := objectHandle.NewWriter(context.Background())
-
-		// Add token metadata for download
 		writer.ObjectAttrs.Metadata = map[string]string{"firebaseStorageDownloadTokens": id}
 
-		// Copy the file data to Firebase Storage
 		if _, err := io.Copy(writer, imageFile); err != nil {
 			log.Println("Error copying file to storage:", err)
 			return nil, err
 		}
 		writer.Close()
 
-		// URL encode the filename to handle spaces and special characters
-		encodedFileName := url.PathEscape(fileName)
-
-		// Generate the download URL
-		fileURL := fmt.Sprintf("https://firebasestorage.googleapis.com/v0/b/food-8ceb4.appspot.com/o/%s?alt=media&token=%s", encodedFileName, id)
-		log.Println("Generated file URL:", fileURL) // Log the generated URL
-
-		// Append to the response
+		fileURL := fmt.Sprintf("https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media&token=%s", bucketName, fileName, id)
 		resp.Url = append(resp.Url, &models.Url{
 			Id:  id,
 			Url: fileURL,
@@ -89,6 +73,102 @@ func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, erro
 
 	return &resp, nil
 }
+
+
+
+
+
+
+
+// import (
+// 	"context"
+// 	"fmt"
+// 	"food/api/models"
+// 	"io"
+// 	"log"
+// 	"mime/multipart"
+// 	"net/url"
+// 	"os"
+
+// 	firebase "firebase.google.com/go"
+// 	"github.com/google/uuid"
+// 	"google.golang.org/api/option"
+// )
+
+// // UploadFiles uploads multiple files to Firebase Storage
+// // UploadFiles uploads multiple files to Firebase Storage
+// func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, error) {
+// 	var resp models.MultipleFileUploadResponse
+
+// 	// Load Firebase credentials from environment variable
+// 	filePath := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
+// 	if filePath == "" {
+// 		return nil, fmt.Errorf("google credentials path not set")
+// 	}
+
+// 	// Initialize Firebase App
+// 	opt := option.WithCredentialsFile(filePath)
+// 	app, err := firebase.NewApp(context.Background(), nil, opt)
+// 	if err != nil {
+// 		log.Println("Firebase App initialization error:", err)
+// 		return nil, err
+// 	}
+
+// 	// Initialize Firebase Storage Client
+// 	client, err := app.Storage(context.Background())
+// 	if err != nil {
+// 		log.Println("Firebase Storage client initialization error:", err)
+// 		return nil, err
+// 	}
+
+// 	// Get a reference to the storage bucket
+// 	bucketHandle, err := client.Bucket("food-8ceb4.appspot.com")
+// 	if err != nil {
+// 		log.Println("Bucket handle error:", err)
+// 		return nil, err
+// 	}
+
+// 	// Loop through uploaded files and upload to Firebase Storage
+// 	for _, v := range file.File["file"] {
+// 		id := uuid.New().String() // Generate a unique token for download
+// 		imageFile, err := v.Open()
+// 		if err != nil {
+// 			log.Println("Error opening file:", err)
+// 			return nil, err
+// 		}
+// 		defer imageFile.Close()
+
+// 		fileName := v.Filename
+// 		log.Println("Uploading file:", fileName) // Log filename being uploaded
+// 		objectHandle := bucketHandle.Object(fileName)
+// 		writer := objectHandle.NewWriter(context.Background())
+
+// 		// Add token metadata for download
+// 		writer.ObjectAttrs.Metadata = map[string]string{"firebaseStorageDownloadTokens": id}
+
+// 		// Copy the file data to Firebase Storage
+// 		if _, err := io.Copy(writer, imageFile); err != nil {
+// 			log.Println("Error copying file to storage:", err)
+// 			return nil, err
+// 		}
+// 		writer.Close()
+
+// 		// URL encode the filename to handle spaces and special characters
+// 		encodedFileName := url.PathEscape(fileName)
+
+// 		// Generate the download URL
+// 		fileURL := fmt.Sprintf("https://firebasestorage.googleapis.com/v0/b/food-8ceb4.appspot.com/o/%s?alt=media&token=%s", encodedFileName, id)
+// 		log.Println("Generated file URL:", fileURL) // Log the generated URL
+
+// 		// Append to the response
+// 		resp.Url = append(resp.Url, &models.Url{
+// 			Id:  id,
+// 			Url: fileURL,
+// 		})
+// 	}
+
+// 	return &resp, nil
+// }
 
 func DeleteFile(fileName string) error {
 	ctx := context.Background()
