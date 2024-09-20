@@ -17,11 +17,12 @@ import (
 	"google.golang.org/api/storage/v1"
 )
 
-// UploadFiles uploads multiple files to Firebase Storage
+// UploadFiles uploads multiple files to Firebase Storage and returns their URLs.
 func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, error) {
 	var resp models.MultipleFileUploadResponse
 
-	filePath := filepath.Join("./", "serviceAccountKey.json")
+	// Path to your Firebase service account key file
+	filePath := filepath.Join(".", "serviceAccountKey.json")
 
 	// Initialize Firebase App with service account key
 	opt := option.WithCredentialsFile(filePath)
@@ -31,40 +32,56 @@ func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, erro
 		return nil, err
 	}
 
-	client, err := app.Storage(context.TODO())
+	// Initialize Firebase Storage client
+	client, err := app.Storage(context.Background())
 	if err != nil {
 		log.Println("Firebase Storage client initialization error:", err)
 		return nil, err
 	}
 
+	// Get a handle to the Firebase Storage bucket
 	bucketHandle, err := client.Bucket("food-8ceb4.appspot.com")
 	if err != nil {
 		log.Println("Bucket handle error:", err)
 		return nil, err
 	}
 
+	// Iterate over the uploaded files
 	for _, v := range file.File["file"] {
 		id := uuid.New().String()
 		imageFile, err := v.Open()
 		if err != nil {
+			log.Println("Error opening file:", v.Filename, err)
 			return nil, err
 		}
-		defer imageFile.Close()
+		defer imageFile.Close() // Ensure file is closed after processing
 
 		fileName := v.Filename
+		log.Println("Uploading file:", fileName)
 
+		// Upload the file to Firebase Storage
 		objectHandle := bucketHandle.Object(fileName)
 		writer := objectHandle.NewWriter(context.Background())
 		writer.ObjectAttrs.Metadata = map[string]string{"firebaseStorageDownloadTokens": id}
 
 		if _, err := io.Copy(writer, imageFile); err != nil {
+			log.Println("Error copying file to Firebase Storage:", err)
 			return nil, err
 		}
-		writer.Close()
 
+		// Closing the writer to complete the upload
+		if err := writer.Close(); err != nil {
+			log.Println("Error closing writer:", err)
+			return nil, err
+		}
+
+		log.Println("File uploaded successfully:", fileName)
+
+		// Encode the file name to handle spaces and special characters
 		encodedFileName := url.PathEscape(fileName)
 		fileURL := fmt.Sprintf("https://firebasestorage.googleapis.com/v0/b/food-8ceb4.appspot.com/o/%s?alt=media&token=%s", encodedFileName, id)
 
+		// Append the file URL to the response
 		resp.Url = append(resp.Url, &models.Url{
 			Id:  id,
 			Url: fileURL,
@@ -84,57 +101,43 @@ func UploadFile(file *os.File) (*models.MultipleFileUploadResponse, error) {
 	opt := option.WithCredentialsFile("serviceAccountKey.json")
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println("Firebase App initialization error:", err)
 		return nil, err
 	}
 
-	client, err := app.Storage(context.TODO())
+	// Initialize Firebase Storage client
+	client, err := app.Storage(context.Background())
 	if err != nil {
+		log.Println("Firebase Storage client initialization error:", err)
 		return nil, err
 	}
 
+	// Specify the Firebase Storage bucket
 	bucketHandle, err := client.Bucket("food-8ceb4.appspot.com")
 	if err != nil {
+		log.Println("Bucket handle error:", err)
 		return nil, err
 	}
 
 	// Use the original file name
 	fileName := file.Name()
 
-	// Create a temporary file
-	tempFile, err := os.Create(fileName)
-	if err != nil {
-		return nil, err
-	}
-	defer tempFile.Close()
-
-	_, err = io.Copy(tempFile, file)
-	if err != nil {
-		return nil, err
-	}
-
-	// Open the temporary file for reading
-	f, err := os.Open(tempFile.Name())
-	if err != nil {
-		return nil, err
-	}
-	defer os.Remove(tempFile.Name())
-
 	// Upload the file to Firebase Storage
 	objectHandle := bucketHandle.Object(fileName)
 	writer := objectHandle.NewWriter(context.Background())
 	writer.ObjectAttrs.Metadata = map[string]string{"firebaseStorageDownloadTokens": id}
 
-	defer writer.Close()
-
-	if _, err := io.Copy(writer, f); err != nil {
+	if _, err := io.Copy(writer, file); err != nil {
+		log.Println("Error copying file to Firebase Storage:", err)
+		return nil, err
+	}
+	if err := writer.Close(); err != nil {
+		log.Println("Error closing writer:", err)
 		return nil, err
 	}
 
 	// Encode the file name to handle spaces and special characters
 	encodedFileName := url.PathEscape(fileName)
-
-	// Generate the public URL
 	fileURL := fmt.Sprintf("https://firebasestorage.googleapis.com/v0/b/food-8ceb4.appspot.com/o/%s?alt=media&token=%s", encodedFileName, id)
 
 	// Add the URL to the response
@@ -148,11 +151,11 @@ func UploadFile(file *os.File) (*models.MultipleFileUploadResponse, error) {
 
 // DeleteFile deletes a file from Firebase Storage
 func DeleteFile(id string) error {
-	// Initialize a context and Google Cloud Storage client
 	ctx := context.Background()
 	client, err := storage.NewService(ctx, option.WithCredentialsFile("serviceAccountKey.json"))
 	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
+		log.Println("Failed to create client:", err)
+		return err
 	}
 
 	// Bucket name and object path to delete
@@ -162,7 +165,8 @@ func DeleteFile(id string) error {
 	// Delete the object
 	err = client.Objects.Delete(bucketName, objectPath).Do()
 	if err != nil {
-		log.Fatalf("Failed to delete object: %v", err)
+		log.Println("Failed to delete object:", err)
+		return err
 	}
 
 	fmt.Printf("Object %s deleted successfully from bucket %s\n", objectPath, bucketName)
