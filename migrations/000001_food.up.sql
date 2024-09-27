@@ -7,7 +7,16 @@ CREATE TABLE IF NOT EXISTS "user" (
   email VARCHAR UNIQUE NOT NULL,
   phone VARCHAR UNIQUE NOT NULL,
   password VARCHAR NOT NULL,
-  role VARCHAR NOT NULL CHECK (role IN ('user', 'courier', 'admin')),
+  created_at TIMESTAMP DEFAULT now(),
+  updated_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS "admin" (
+  id UUID PRIMARY KEY,
+  name VARCHAR NOT NULL,
+  email VARCHAR UNIQUE NOT NULL,
+  phone VARCHAR UNIQUE NOT NULL,
+  password VARCHAR NOT NULL,
   created_at TIMESTAMP DEFAULT now(),
   updated_at TIMESTAMP DEFAULT now()
 );

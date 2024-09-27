@@ -79,22 +79,21 @@ func (c *CategoryRepo) GetAll(ctx context.Context, req *models.GetAllCategoriesR
 	)
 	offset := (req.Page - 1) * req.Limit
 
-	// If there's a search request, start with WHERE and apply the ILIKE filter
 	if req.Search != "" {
-		filter += fmt.Sprintf(` WHERE name ILIKE '%%%v%%'`, req.Search)
+	    filter += fmt.Sprintf(` WHERE name ILIKE '%%%v%%'`, req.Search)
 	}
+
+	// Order by created_at DESC
+	filter += " ORDER BY created_at DESC"
 
 	// Append OFFSET and LIMIT to the filter
 	filter += fmt.Sprintf(" OFFSET %v LIMIT %v", offset, req.Limit)
-	fmt.Println("filter: ", filter)
 
 	query := `SELECT count(id) OVER(), id, name, created_at, updated_at FROM "category"` + filter
-
 	rows, err := c.db.Query(context.Background(), query)
 	if err != nil {
 		return resp, err
 	}
-
 	for rows.Next() {
 		var (
 			category   = models.Category{}
@@ -110,7 +109,6 @@ func (c *CategoryRepo) GetAll(ctx context.Context, req *models.GetAllCategoriesR
 			&updated_at); err != nil {
 			return resp, err
 		}
-
 		resp.Categories = append(resp.Categories, models.Category{
 			Id:        category.Id,
 			Name:      name.String,
@@ -120,7 +118,6 @@ func (c *CategoryRepo) GetAll(ctx context.Context, req *models.GetAllCategoriesR
 	}
 	return resp, nil
 }
-
 
 func (c *CategoryRepo) GetByID(ctx context.Context, id string) (*models.Category, error) {
 	var (

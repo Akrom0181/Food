@@ -18,26 +18,26 @@ import (
 	"github.com/go-redis/redis"
 )
 
-type authService struct {
+type adminAuthService struct {
 	storage storage.IStorage
 	log     logger.LoggerI
 	redis   storage.IRedisStorage
 }
 
-func NewAuthService(storage storage.IStorage, log logger.LoggerI, redis storage.IRedisStorage) authService {
-	return authService{
+func NewAuthAdminService(storage storage.IStorage, log logger.LoggerI, redis storage.IRedisStorage) adminAuthService {
+	return adminAuthService{
 		storage: storage,
 		log:     log,
 		redis:   redis,
 	}
 }
 
-func (a authService) UserLogin(ctx context.Context, loginRequest models.UserLoginRequest) (models.UserLoginResponse, error) {
+func (a adminAuthService) AdminLogin(ctx context.Context, loginRequest models.AdminLoginRequest) (models.AdminLoginResponse, error) {
 	fmt.Println(" loginRequest.Login: ", loginRequest.Login)
-	user, err := a.storage.User().GetByLogin(ctx, loginRequest.Login)
+	admin, err := a.storage.Admin().GetByLogin(ctx, loginRequest.Login)
 	if err != nil {
 		a.log.Error("error while getting user credentials by login", logger.Error(err))
-		return models.UserLoginResponse{}, err
+		return models.AdminLoginResponse{}, err
 	}
 
 	// if err = password.CompareHashAndPassword(user.Password, loginRequest.Password); err != nil {
@@ -47,22 +47,24 @@ func (a authService) UserLogin(ctx context.Context, loginRequest models.UserLogi
 
 	m := make(map[interface{}]interface{})
 
-	m["user_id"] = user.Id
+	m["user_id"] = admin.Id
 	m["user_role"] = config.USER_ROLE
 
-	accessToken, refreshToken, err := jwt.GenJWT(m)
-	if err != nil {
-		a.log.Error("error while generating tokens for user login", logger.Error(err))
-		return models.UserLoginResponse{}, err
-	}
+	// accessToken, refreshToken, err := jwt.GenJWT(m)
+	// if err != nil {
+	// 	a.log.Error("error while generating tokens for user login", logger.Error(err))
+	// 	return models.AdminLoginResponse{}, err
+	// }
 
-	return models.UserLoginResponse{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+	return models.AdminLoginResponse{
+		// AccessToken:  accessToken,
+		// RefreshToken: refreshToken,
+		Id:           admin.Id,
+		Phone:        admin.Phone,
 	}, nil
 }
 
-func (a authService) UserRegister(ctx context.Context, loginRequest models.UserRegisterRequest) error {
+func (a adminAuthService) AdminRegister(ctx context.Context, loginRequest models.AdminRegisterRequest) error {
 	fmt.Println(" loginRequest.Login: ", loginRequest.MobilePhone)
 
 	otpCode := pkg.GenerateOTP()
@@ -83,7 +85,7 @@ func (a authService) UserRegister(ctx context.Context, loginRequest models.UserR
 	return nil
 }
 
-func (a authService) UserRegisterConfirm(ctx context.Context, req models.UserRegisterConfRequest) (models.UserLoginResponse, error) {
+func (a adminAuthService) AdminRegisterConfirm(ctx context.Context, req models.UserRegisterConfRequest) (models.UserLoginResponse, error) {
 	resp := models.UserLoginResponse{}
 
 	otp, err := a.redis.Get(ctx, req.MobilePhone)
@@ -117,7 +119,7 @@ func (a authService) UserRegisterConfirm(ctx context.Context, req models.UserReg
 	return resp, nil
 }
 
-func (a authService) UserLoginByPhoneConfirm(ctx context.Context, req models.UserLoginPhoneConfirmRequest) (models.UserLoginResponse, error) {
+func (a adminAuthService) AdminLoginByPhoneConfirm(ctx context.Context, req models.UserLoginPhoneConfirmRequest) (models.UserLoginResponse, error) {
 	resp := models.UserLoginResponse{}
 
 	storedOTP, err := a.redis.Get(ctx, req.MobilePhone)
@@ -140,7 +142,7 @@ func (a authService) UserLoginByPhoneConfirm(ctx context.Context, req models.Use
 		a.log.Error("error while deleting OTP from redis", logger.Error(err))
 		return resp, err
 	}
-	user, err := a.storage.User().CheckPhoneNumberExist(ctx, req.MobilePhone)
+	user, err := a.storage.Admin().CheckPhoneNumberExist(ctx, req.MobilePhone)
 	if err != nil {
 		a.log.Error("error while getting user by phone number", logger.Error(err))
 		return resp, err

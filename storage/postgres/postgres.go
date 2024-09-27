@@ -14,6 +14,7 @@ import (
 type Store struct {
 	Pool               *pgxpool.Pool
 	db                 *pgxpool.Pool
+	admin              *AdminRepo
 	// redis              storage.IRedisStorage
 	log                logger.LoggerI
 	user               *UserRepo
@@ -75,6 +76,16 @@ func (s *Store) User() storage.IUserStorage {
 		}
 	}
 	return s.user
+}
+
+func (s *Store) Admin() storage.IAdminStorage {
+	if s.admin == nil {
+		s.admin = &AdminRepo{
+			db:  s.db,
+			log: s.log,
+		}
+	}
+	return s.admin
 }
 
 // Auth implements storage.IStorage.

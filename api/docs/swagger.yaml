@@ -8,6 +8,41 @@ definitions:
       status:
         type: integer
     type: object
+  models.Admin:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.AdminLoginRequest:
+    properties:
+      password:
+        type: string
+      phone:
+        type: string
+    type: object
+  models.AdminLoginResponse:
+    properties:
+      access_token:
+        type: string
+      id:
+        type: string
+      phone:
+        type: string
+      refresh_token:
+        type: string
+    type: object
   models.Banner:
     properties:
       created_at:
@@ -41,6 +76,17 @@ definitions:
       name:
         type: string
       updated_at:
+        type: string
+    type: object
+  models.CreateAdmin:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      phone:
         type: string
     type: object
   models.CreateBanner:
@@ -87,8 +133,15 @@ definitions:
         type: string
       phone:
         type: string
-      role:
-        type: string
+    type: object
+  models.GetAllAdminsResponse:
+    properties:
+      Admins:
+        items:
+          $ref: '#/definitions/models.Admin'
+        type: array
+      count:
+        type: integer
     type: object
   models.GetAllBannerResponse:
     properties:
@@ -241,6 +294,17 @@ definitions:
       quantity:
         type: integer
     type: object
+  models.UpdateAdmin:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+    type: object
   models.UpdateBranch:
     properties:
       address:
@@ -289,8 +353,6 @@ definitions:
         type: string
       phone:
         type: string
-      role:
-        type: string
     type: object
   models.User:
     properties:
@@ -306,9 +368,14 @@ definitions:
         type: string
       phone:
         type: string
-      role:
-        type: string
       updated_at:
+        type: string
+    type: object
+  models.UserLoginPhoneConfirmRequest:
+    properties:
+      mobile_phone:
+        type: string
+      smscode:
         type: string
     type: object
   models.UserLoginRequest:
@@ -321,6 +388,10 @@ definitions:
   models.UserLoginResponse:
     properties:
       access_token:
+        type: string
+      id:
+        type: string
+      phone:
         type: string
       refresh_token:
         type: string
@@ -336,7 +407,7 @@ definitions:
     type: object
   models.UserRegisterRequest:
     properties:
-      mail:
+      mobile_phone:
         type: string
     type: object
 info:
@@ -345,6 +416,40 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
+  /food/api/v1/admin/login:
+    post:
+      consumes:
+      - application/json
+      description: Login to Khorezm_Shashlik
+      parameters:
+      - description: login
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/models.AdminLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.AdminLoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Admin login
+      tags:
+      - admin_auth
   /food/api/v1/category:
     post:
       consumes:
@@ -428,6 +533,47 @@ paths:
       summary: Update Category
       tags:
       - category
+  /food/api/v1/createadmin:
+    post:
+      consumes:
+      - application/json
+      description: Create a new admin
+      operationId: create_admin
+      parameters:
+      - description: Admin
+        in: body
+        name: Admin
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateAdmin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Admin'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Create Admin
+      tags:
+      - admin
   /food/api/v1/createbanner:
     post:
       consumes:
@@ -590,6 +736,51 @@ paths:
       summary: Create User
       tags:
       - user
+  /food/api/v1/deleteadmin/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a admin by their ID
+      operationId: delete_admin
+      parameters:
+      - description: Admin ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Delete Admin by ID
+      tags:
+      - admin
   /food/api/v1/deletebanner/{id}:
     delete:
       consumes:
@@ -728,25 +919,22 @@ paths:
   /food/api/v1/deletefile:
     delete:
       consumes:
-      - multipart/form-data
+      - application/json
       description: Delete File
       operationId: delete_file
       parameters:
-      - description: id
+      - description: ID of the file to delete
         in: query
         name: id
         required: true
         type: string
+      produces:
+      - application/json
       responses:
-        "200":
+        "204":
           description: Success Request
           schema:
-            allOf:
-            - $ref: '#/definitions/handler.Response'
-            - properties:
-                data:
-                  type: string
-              type: object
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -903,6 +1091,53 @@ paths:
       summary: Delete User by ID
       tags:
       - user
+  /food/api/v1/getalladmins:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all admins
+      operationId: get_all_admins
+      parameters:
+      - description: Search users by name or email
+        in: query
+        name: search
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Limit number of results per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GetAllAdminsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Get All Admins
+      tags:
+      - admin
   /food/api/v1/getallbanners:
     get:
       consumes:
@@ -1267,6 +1502,46 @@ paths:
       summary: get a category by its id
       tags:
       - category
+  /food/api/v1/getbyidadmin/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a user by their ID
+      operationId: get_admin
+      parameters:
+      - description: Admin ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Admin'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Get User by ID
+      tags:
+      - admin
   /food/api/v1/getbyiduser/{id}:
     get:
       consumes:
@@ -1463,6 +1738,52 @@ paths:
       summary: User register
       tags:
       - auth
+  /food/api/v1/updateadmin/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update an existing Admin
+      operationId: update_admin
+      parameters:
+      - description: Admin ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: UpdateAdminRequest
+        in: body
+        name: User
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateAdmin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Admin'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Update Admin
+      tags:
+      - admin
   /food/api/v1/updatebranch/{id}:
     put:
       consumes:
@@ -1645,52 +1966,40 @@ paths:
       summary: Update User
       tags:
       - user
-  /food/api/v1/uploadfiles:
+  /food/api/v1/user/byphoneconfirm:
     post:
       consumes:
-      - multipart/form-data
-      description: Upload Multiple Files
-      operationId: upload_multiple_files
+      - application/json
+      description: Login to the system using phone number and OTP
       parameters:
-      - collectionFormat: csv
-        description: File to upload
-        in: formData
-        items:
-          type: file
-        name: file
+      - description: login
+        in: body
+        name: login
         required: true
-        type: array
+        schema:
+          $ref: '#/definitions/models.UserLoginPhoneConfirmRequest'
+      produces:
+      - application/json
       responses:
         "200":
-          description: Success Request
+          description: OK
           schema:
-            allOf:
-            - $ref: '#/definitions/handler.Response'
-            - properties:
-                data:
-                  type: string
-              type: object
+            $ref: '#/definitions/models.UserLoginResponse'
         "400":
           description: Bad Request
           schema:
-            allOf:
-            - $ref: '#/definitions/handler.Response'
-            - properties:
-                data:
-                  type: string
-              type: object
-        "500":
-          description: Server error
+            $ref: '#/definitions/models.Response'
+        "401":
+          description: Unauthorized
           schema:
-            allOf:
-            - $ref: '#/definitions/handler.Response'
-            - properties:
-                data:
-                  type: string
-              type: object
-      summary: Upload Multiple Files
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Customer login by phone confirmation
       tags:
-      - Upload File
+      - auth
   /food/api/v1/user/login:
     post:
       consumes:

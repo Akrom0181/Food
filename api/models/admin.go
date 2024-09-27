@@ -1,6 +1,6 @@
 package models
 
-type User struct {
+type Admin struct {
 	Id         string `json:"id"`
 	Name       string `json:"name"`
 	Email      string `json:"email"`
@@ -10,21 +10,21 @@ type User struct {
 	Updated_at string `json:"updated_at,omitempty"`
 }
 
-type CreateUser struct {
+type CreateAdmin struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
 	Password string `json:"password"`
 }
 
-type UpdateUser struct {
+type UpdateAdmin struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
 	Password string `json:"password"`
 }
 
-type GetUser struct {
+type GetAdmin struct {
 	Id         string `json:"id"`
 	Name       string `json:"name"`
 	Email      string `json:"email"`
@@ -34,13 +34,13 @@ type GetUser struct {
 	Updated_at string `json:"updated_at"`
 }
 
-type GetAllUsersRequest struct {
+type GetAllAdminsRequest struct {
 	Search string `json:"search"`
 	Page   uint64 `json:"page"`
 	Limit  uint64 `json:"limit"`
 }
 
-type GetAllUsersResponse struct {
-	Users []User `json:"users"`
-	Count int64  `json:"count"`
+type GetAllAdminsResponse struct {
+	Admins []Admin `json:"Admins"`
+	Count  int64   `json:"count"`
 }

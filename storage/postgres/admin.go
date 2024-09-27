@@ -13,19 +13,19 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserRepo struct {
+type AdminRepo struct {
 	db  *pgxpool.Pool
 	log logger.LoggerI
 }
 
-func NewUser(db *pgxpool.Pool, log logger.LoggerI) UserRepo {
-	return UserRepo{
+func NewAdmin(db *pgxpool.Pool, log logger.LoggerI) AdminRepo {
+	return AdminRepo{
 		db:  db,
 		log: log,
 	}
 }
 
-func (c *UserRepo) GetByLogin(ctx context.Context, login string) (models.User, error) {
+func (c *AdminRepo) GetByLogin(ctx context.Context, login string) (models.Admin, error) {
 	var (
 		name      sql.NullString
 		phone     sql.NullString
@@ -42,41 +42,41 @@ func (c *UserRepo) GetByLogin(ctx context.Context, login string) (models.User, e
 		created_at, 
 		updated_at,
 		password
-		FROM "user" WHERE email = $1`
+		FROM "admin" WHERE phone = $1`
 
 	row := c.db.QueryRow(ctx, query, login)
 
-	user := models.User{}
+	admin := models.Admin{}
 
 	err := row.Scan(
-		&user.Id,
+		&admin.Id,
 		&name,
 		&phone,
 		&email,
 		&createdat,
 		&updatedat,
-		&user.Password,
+		&admin.Password,
 	)
 
 	if err != nil {
 		c.log.Error("failed to scan user by LOGIN from database", logger.Error(err))
-		return models.User{}, err
+		return models.Admin{}, err
 	}
 
-	user.Name = name.String
-	user.Phone = phone.String
-	user.Email = email.String
-	user.Created_at = createdat.String
-	user.Updated_at = updatedat.String
+	admin.Name = name.String
+	admin.Phone = phone.String
+	admin.Email = email.String
+	admin.Created_at = createdat.String
+	admin.Updated_at = updatedat.String
 
-	return user, nil
+	return admin, nil
 }
 
-func (c *UserRepo) Login(ctx context.Context, login models.User) (string, error) {
+func (c *AdminRepo) Login(ctx context.Context, login models.Admin) (string, error) {
 	var hashedPass string
 
 	query := `SELECT password
-	FROM "user"
+	FROM "admin"
 	WHERE phone = $1`
 
 	err := c.db.QueryRow(ctx, query,
@@ -99,33 +99,32 @@ func (c *UserRepo) Login(ctx context.Context, login models.User) (string, error)
 	return "Logged in successfully", nil
 }
 
-func (c *UserRepo) CheckPhoneNumberExist(ctx context.Context, id string) (models.User, error) {
+func (c *AdminRepo) CheckPhoneNumberExist(ctx context.Context, id string) (models.Admin, error) {
 
-	resp := models.User{}
+	resp := models.Admin{}
 
-	query := ` SELECT id FROM "user" WHERE phone = $1 `
+	query := ` SELECT id FROM "admin" WHERE phone = $1 `
 
 	err := c.db.QueryRow(ctx, query, id).Scan(&resp.Id)
 	if err != nil {
-		return models.User{}, err
+		return models.Admin{}, err
 	}
 
 	return resp, nil
 }
 
-func (u *UserRepo) Create(ctx context.Context, user *models.User) (*models.User, error) {
+func (u *AdminRepo) Create(ctx context.Context, user *models.Admin) (*models.Admin, error) {
 
 	id := uuid.New()
-	query := `INSERT INTO "user" (
+	query := `INSERT INTO "admin" (
 		id,
 		email,
 		name,
 		phone,
 		password,
-		role,
 		created_at,
 		updated_at)
-		VALUES($1,$2,$3,$4,$5,$6, CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) 
+		VALUES($1,$2,$3,$4,$5, CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) 
 	`
 
 	_, err := u.db.Exec(context.Background(), query,
@@ -137,9 +136,9 @@ func (u *UserRepo) Create(ctx context.Context, user *models.User) (*models.User,
 	)
 
 	if err != nil {
-		return &models.User{}, err
+		return &models.Admin{}, err
 	}
-	return &models.User{
+	return &models.Admin{
 		Id:         id.String(),
 		Email:      user.Email,
 		Name:       user.Name,
@@ -150,40 +149,39 @@ func (u *UserRepo) Create(ctx context.Context, user *models.User) (*models.User,
 	}, nil
 }
 
-func (u *UserRepo) Update(ctx context.Context, user *models.User) (*models.User, error) {
-	query := `UPDATE "user" SET 
+func (u *AdminRepo) Update(ctx context.Context, admin *models.Admin) (*models.Admin, error) {
+	query := `UPDATE "admin" SET 
 		email=$1,
 		name=$2,
 		phone=$3,
 		password=$4,
-		role=$5,
 		updated_at=CURRENT_TIMESTAMP
-		WHERE id = $6
+		WHERE id = $5
 	`
 	_, err := u.db.Exec(context.Background(), query,
-		user.Name,
-		user.Email,
-		user.Phone,
-		user.Password,
-		user.Id,
+		admin.Name,
+		admin.Email,
+		admin.Phone,
+		admin.Password,
+		admin.Id,
 	)
 	if err != nil {
-		return &models.User{}, err
+		return &models.Admin{}, err
 	}
-	return &models.User{
-		Id:         user.Id,
-		Name:       user.Name,
-		Email:      user.Email,
-		Phone:      user.Phone,
-		Password:   user.Password,
-		Created_at: user.Created_at,
-		Updated_at: user.Updated_at,
+	return &models.Admin{
+		Id:         admin.Id,
+		Name:       admin.Name,
+		Email:      admin.Email,
+		Phone:      admin.Phone,
+		Password:   admin.Password,
+		Created_at: admin.Created_at,
+		Updated_at: admin.Updated_at,
 	}, nil
 }
 
-func (u *UserRepo) GetAll(ctx context.Context, req *models.GetAllUsersRequest) (*models.GetAllUsersResponse, error) {
+func (u *AdminRepo) GetAll(ctx context.Context, req *models.GetAllAdminsRequest) (*models.GetAllAdminsResponse, error) {
 	var (
-		resp   = &models.GetAllUsersResponse{}
+		resp   = &models.GetAllAdminsResponse{}
 		filter = ""
 	)
 	offset := (req.Page - 1) * req.Limit
@@ -201,39 +199,36 @@ func (u *UserRepo) GetAll(ctx context.Context, req *models.GetAllUsersRequest) (
         email,
         phone,
         password,
-        role,
         created_at,
-        updated_at FROM "user"`+filter)
+        updated_at FROM "admin"`+filter)
 	if err != nil {
 		return resp, err
 	}
 
 	for rows.Next() {
 		var (
-			user       = models.User{}
+			admin      = models.Admin{}
 			name       sql.NullString
 			email      sql.NullString
 			phone      sql.NullString
 			password   sql.NullString
-			role       sql.NullString
 			created_at sql.NullString
 			updated_at sql.NullString
 		)
 		if err := rows.Scan(
 			&resp.Count,
-			&user.Id,
+			&admin.Id,
 			&name,
 			&email,
 			&phone,
 			&password,
-			&role,
 			&created_at,
 			&updated_at); err != nil {
 			return resp, err
 		}
 
-		resp.Users = append(resp.Users, models.User{
-			Id:         user.Id,
+		resp.Admins = append(resp.Admins, models.Admin{
+			Id:         admin.Id,
 			Name:       name.String,
 			Email:      email.String,
 			Phone:      phone.String,
@@ -245,31 +240,29 @@ func (u *UserRepo) GetAll(ctx context.Context, req *models.GetAllUsersRequest) (
 	return resp, nil
 }
 
-func (u *UserRepo) GetByID(ctx context.Context, id string) (*models.User, error) {
+func (u *AdminRepo) GetByID(ctx context.Context, id string) (*models.Admin, error) {
 	var (
-		user       = models.User{}
+		admin      = models.Admin{}
 		name       sql.NullString
 		email      sql.NullString
 		phone      sql.NullString
 		password   sql.NullString
-		role       sql.NullString
 		created_at sql.NullString
 		updated_at sql.NullString
 	)
-	if err := u.db.QueryRow(context.Background(), `SELECT id, name, email, phone, password, role, created_at, updated_at FROM "user" WHERE id = $1`, id).Scan(
-		&user.Id,
+	if err := u.db.QueryRow(context.Background(), `SELECT id, name, email, phone, password, created_at, updated_at FROM "admin" WHERE id = $1`, id).Scan(
+		&admin.Id,
 		&name,
 		&email,
 		&phone,
 		&password,
-		&role,
 		&created_at,
 		&updated_at,
 	); err != nil {
-		return &models.User{}, err
+		return &models.Admin{}, err
 	}
-	return &models.User{
-		Id:         user.Id,
+	return &models.Admin{
+		Id:         admin.Id,
 		Name:       name.String,
 		Email:      email.String,
 		Phone:      phone.String,
@@ -279,8 +272,8 @@ func (u *UserRepo) GetByID(ctx context.Context, id string) (*models.User, error)
 	}, nil
 }
 
-func (u *UserRepo) Delete(ctx context.Context, id string) error {
-	query := `DELETE FROM "user" WHERE id = $1`
+func (u *AdminRepo) Delete(ctx context.Context, id string) error {
+	query := `DELETE FROM "admin" WHERE id = $1`
 	_, err := u.db.Exec(context.Background(), query, id)
 	if err != nil {
 		return err

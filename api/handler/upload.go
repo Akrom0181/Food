@@ -6,35 +6,35 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// UploadFiles godoc
-// @ID upload_multiple_files
-// @Router /food/api/v1/uploadfiles [post]
-// @Summary Upload Multiple Files
-// @Description Upload Multiple Files
-// @Tags Upload File
-// @Accept multipart/form-data
-// @Produce json
-// @Param file formData multipart.File true "File to upload" // Correct type for single file upload
-// @Success 200 {object} Response{data=string} "Success Request"
-// @Failure 400 {object} Response{data=string} "Bad Request"
-// @Failure 500 {object} Response{data=string} "Server error"
-func (h *Handler) UploadFiles(c *gin.Context) {
-	form, err := c.MultipartForm()
-	if err != nil {
-		h.log.Error(err.Error() + "  :  " + "File error")
-		c.JSON(400, Response{Data: "File error"})
-		return
-	}
+// // UploadFiles godoc
+// // @ID upload_multiple_files
+// // @Router /food/api/v1/uploadfiles [post]
+// // @Summary Upload Multiple Files
+// // @Description Upload Multiple Files
+// // @Tags Upload File
+// // @Accept multipart/form-data
+// // @Produce json
+// // @Param file formData multipart.File true "File to upload" // Correct type for single file upload
+// // @Success 200 {object} Response{data=string} "Success Request"
+// // @Failure 400 {object} Response{data=string} "Bad Request"
+// // @Failure 500 {object} Response{data=string} "Server error"
+// func (h *Handler) UploadFiles(c *gin.Context) {
+// 	form, err := c.MultipartForm()
+// 	if err != nil {
+// 		h.log.Error(err.Error() + "  :  " + "File error")
+// 		c.JSON(400, Response{Data: "File error"})
+// 		return
+// 	}
 
-	resp, err := helper.UploadFiles(form)
-	if err != nil {
-		h.log.Error(err.Error() + "  :  " + "Upload error")
-		c.JSON(500, Response{Data: "Upload error"})
-		return
-	}
+// 	resp, err := helper.UploadFiles(form)
+// 	if err != nil {
+// 		h.log.Error(err.Error() + "  :  " + "Upload error")
+// 		c.JSON(500, Response{Data: "Upload error"})
+// 		return
+// 	}
 
-	c.JSON(200, resp)
-}
+// 	c.JSON(200, resp)
+// }
 
 // DeleteFile godoc
 // @ID delete_file

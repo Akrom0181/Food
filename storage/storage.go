@@ -8,7 +8,7 @@ import (
 
 type IStorage interface {
 	CloseDB()
-	// Auth() IAuthStorage
+	Admin() IAdminStorage
 	User() IUserStorage
 	Branch() IBranchStorage
 	Banner() IBannerStorage
@@ -28,6 +28,17 @@ type IUserStorage interface {
 	Update(context.Context, *models.User) (*models.User, error)
 	Delete(context.Context, string) error
 	GetByLogin(ctx context.Context, login string) (models.User, error)
+	CheckPhoneNumberExist(ctx context.Context, id string) (models.User, error)
+}
+
+type IAdminStorage interface {
+	Create(context.Context, *models.Admin) (*models.Admin, error)
+	GetAll(ctx context.Context, request *models.GetAllAdminsRequest) (*models.GetAllAdminsResponse, error)
+	GetByID(ctx context.Context, id string) (*models.Admin, error)
+	Update(context.Context, *models.Admin) (*models.Admin, error)
+	Delete(context.Context, string) error
+	GetByLogin(ctx context.Context, login string) (models.Admin, error)
+	CheckPhoneNumberExist(ctx context.Context, id string) (models.Admin, error)
 }
 
 type IBannerStorage interface {

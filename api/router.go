@@ -2,12 +2,14 @@ package api
 
 import (
 	// "errors"
+	"errors"
 	_ "food/api/docs"
 	"food/api/handler"
 	"food/config"
 	"food/pkg/logger"
 	"food/service"
 	"food/storage"
+	"net/http"
 
 	// "net/http"
 
@@ -23,19 +25,24 @@ import (
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
-func NewApi(r *gin.Engine, cfg *config.Config, storage storage.IStorage, logger logger.LoggerI, service service.Service) {
+func NewApi(r *gin.Engine, cfg *config.Config, storage storage.IStorage, logger logger.LoggerI, service service.IServiceManager) {
 	h := handler.NewStrg(logger, storage, cfg, service)
 	r.Use(customCORSMiddleware())
 	// r.Use(authMiddleware)
 
 	v1 := r.Group("/food/api/v1")
 
-	v1.POST("/uploadfiles", h.UploadFiles)
+	// v1.POST("/uploadfiles", h.UploadFiles)
 	v1.DELETE("/deletefiles", h.DeleteFile)
 
-	v1.POST("/sendcode", h.UserRegister)
+	v1.POST("/user/sendcode", h.UserRegister)
 	v1.POST("/user/verifycode", h.UserRegisterConfirm)
 	v1.POST("/user/login", h.UserLogin)
+	v1.POST("/user/byphoneconfirm", h.UserLoginByPhoneConfirm)
+
+	// v1.POST("/admin/sendcode", h.AdminRegister)
+	// v1.POST("/admin/verifycode", h.AdminRegisterConfirm)
+	v1.POST("/admin/login", h.AdminLogin)
 
 	v1.POST("/category", h.CreateCategory)
 	v1.GET("/getbycategory/:id", h.GetCategoryByID)
@@ -50,11 +57,11 @@ func NewApi(r *gin.Engine, cfg *config.Config, storage storage.IStorage, logger 
 	v1.DELETE("/deleteorder/:id", h.DeleteOrder)
 	// r.PATCH("/changeorderstatus", h.ChangeStatus)
 
-	// v1.POST("createorderitem", h.CreateOrderItem)
-	// v1.GET("/getbyorderitem/:id", h.GetOrderItemByID)
-	// v1.GET("/getallorderitems", h.GetAllOrderItems)
-	// v1.PUT("/updateorderitem", h.UpdateOrderItem)
-	// v1.DELETE("deleteorderitem", h.DeleteOrderItem)
+	v1.POST("/createadmin", h.CreateAdmin)
+	v1.GET("/getbyidadmin/:id", h.GetAdminByID)
+	v1.GET("/getalladmins", h.GetAllAdmins)
+	v1.PUT("/updateadmin/:id", h.UpdateAdmin)
+	v1.DELETE("/deleteadmin/:id", h.DeleteAdmin)
 
 	v1.POST("/createuser", h.CreateUser)
 	v1.GET("/getbyiduser/:id", h.GetUserByID)
@@ -100,14 +107,11 @@ func customCORSMiddleware() gin.HandlerFunc {
 	}
 }
 
-// func authMiddleware(c *gin.Context) {
-// 	auth := c.GetHeader("Authorization")
-// 	if auth == "" {
-// 		c.AbortWithError(http.StatusUnauthorized, errors.New("unauthorized"))
-// 	}
-// 	c.Next()
-// }
+func authMiddleware(c *gin.Context) {
+	auth := c.GetHeader("Authorization")
+	if auth == "" {
+		c.AbortWithError(http.StatusUnauthorized, errors.New("unauthorized"))
+	}
 
-// https://firebasestorage.googleapis.com/v0/b/food-8ceb4.appspot.com/o/Screenshot%202024-08-29%20at%2016.03.43.png?alt=media&token=d031a952-29d7-4f16-8e18-2835b7f47c7a
-
-// https://firebasestorage.googleapis.com/v0/b/food-8ceb4.appspot.com/o/b11732f7-5310-46ee-9904-74bd23bda809?alt=media&token=b11732f7-5310-46ee-9904-74bd23bda809
+	c.Next()
+}

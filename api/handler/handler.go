@@ -34,7 +34,7 @@ type ErrorResponse struct {
 	Error interface{} `json:"error"`
 }
 
-func NewStrg(log logger.LoggerI, strg storage.IStorage, cfg *config.Config, service service.Service) *Handler {
+func NewStrg(log logger.LoggerI, strg storage.IStorage, cfg *config.Config, service service.IServiceManager) *Handler {
 	return &Handler{
 		log:     log,
 		storage: strg,
