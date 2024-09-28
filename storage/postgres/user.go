@@ -201,7 +201,6 @@ func (u *UserRepo) GetAll(ctx context.Context, req *models.GetAllUsersRequest) (
         email,
         phone,
         password,
-        role,
         created_at,
         updated_at FROM "user"`+filter)
 	if err != nil {
@@ -215,7 +214,6 @@ func (u *UserRepo) GetAll(ctx context.Context, req *models.GetAllUsersRequest) (
 			email      sql.NullString
 			phone      sql.NullString
 			password   sql.NullString
-			role       sql.NullString
 			created_at sql.NullString
 			updated_at sql.NullString
 		)
@@ -226,7 +224,6 @@ func (u *UserRepo) GetAll(ctx context.Context, req *models.GetAllUsersRequest) (
 			&email,
 			&phone,
 			&password,
-			&role,
 			&created_at,
 			&updated_at); err != nil {
 			return resp, err
@@ -252,17 +249,15 @@ func (u *UserRepo) GetByID(ctx context.Context, id string) (*models.User, error)
 		email      sql.NullString
 		phone      sql.NullString
 		password   sql.NullString
-		role       sql.NullString
 		created_at sql.NullString
 		updated_at sql.NullString
 	)
-	if err := u.db.QueryRow(context.Background(), `SELECT id, name, email, phone, password, role, created_at, updated_at FROM "user" WHERE id = $1`, id).Scan(
+	if err := u.db.QueryRow(context.Background(), `SELECT id, name, email, phone, password, created_at, updated_at FROM "user" WHERE id = $1`, id).Scan(
 		&user.Id,
 		&name,
 		&email,
 		&phone,
 		&password,
-		&role,
 		&created_at,
 		&updated_at,
 	); err != nil {
