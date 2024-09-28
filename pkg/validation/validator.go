@@ -34,7 +34,7 @@ func ValidatePhoneNumber(phoneNumber string) error {
 		return fmt.Errorf("error while validation: %v", err)
 	}
 	if !correct {
-		return fmt.Errorf("ehone number %s is invalid", phoneNumber)
+		return fmt.Errorf("your phone number %s is invalid", phoneNumber)
 	}
 	return nil
 }

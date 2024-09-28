@@ -29,6 +29,7 @@ type IUserStorage interface {
 	Delete(context.Context, string) error
 	GetByLogin(ctx context.Context, login string) (models.User, error)
 	CheckPhoneNumberExist(ctx context.Context, id string) (models.User, error)
+	GetByPhone(ctx context.Context, number string) (*models.User, error)
 }
 
 type IAdminStorage interface {
@@ -39,6 +40,7 @@ type IAdminStorage interface {
 	Delete(context.Context, string) error
 	GetByLogin(ctx context.Context, login string) (models.Admin, error)
 	CheckPhoneNumberExist(ctx context.Context, id string) (models.Admin, error)
+	GetByPhone(ctx context.Context, number string) (*models.Admin, error)
 }
 
 type IBannerStorage interface {

@@ -287,3 +287,35 @@ func (u *UserRepo) Delete(ctx context.Context, id string) error {
 	}
 	return nil
 }
+
+func (u *UserRepo) GetByPhone(ctx context.Context, number string) (*models.User, error) {
+	var (
+		admin      = models.User{}
+		name       sql.NullString
+		email      sql.NullString
+		phone      sql.NullString
+		password   sql.NullString
+		created_at sql.NullString
+		updated_at sql.NullString
+	)
+	if err := u.db.QueryRow(context.Background(), `SELECT id, name, email, phone, password, created_at, updated_at FROM "user" WHERE phone = $1`, phone).Scan(
+		&admin.Id,
+		&name,
+		&email,
+		&phone,
+		&password,
+		&created_at,
+		&updated_at,
+	); err != nil {
+		return &models.User{}, err
+	}
+	return &models.User{
+		Id:         admin.Id,
+		Name:       name.String,
+		Email:      email.String,
+		Phone:      phone.String,
+		Password:   password.String,
+		Created_at: created_at.String,
+		Updated_at: updated_at.String,
+	}, nil
+}

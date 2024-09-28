@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"food/api/models"
+	check "food/pkg/validation"
 
 	// check "food/pkg/validation"
 	"net/http"
@@ -32,16 +33,29 @@ func (h *Handler) AdminLogin(c *gin.Context) {
 
 	fmt.Println("loginReq: ", loginReq)
 
-	//TODO: need validate login & password
+	if err := check.ValidatePhoneNumber(loginReq.Login); err != nil {
+		handleResponseLog(c, h.log, "error while validating phone number", http.StatusBadRequest, err.Error())
+		return
+	}
+
+	password, err := h.storage.Admin().GetByPhone(c.Request.Context(), loginReq.Login)
+	if err != nil {
+		handleResponseLog(c, h.log, "error while gettingByPhone", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if loginReq.Password != password.Password {
+		handleResponseLog(c, h.log, "password does not match", http.StatusBadRequest, "")
+		return
+	}
 
 	loginResp, err := h.service.AdminAuth().AdminLogin(c.Request.Context(), loginReq)
 	if err != nil {
-		handleResponseLog(c, h.log, "unauthorized", http.StatusUnauthorized, err)
+		handleResponseLog(c, h.log, "unauthorized", http.StatusUnauthorized, err.Error())
 		return
 	}
 
 	handleResponseLog(c, h.log, "Success", http.StatusOK, loginResp)
-
 }
 
 // // AdminRegister godoc

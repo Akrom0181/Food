@@ -280,3 +280,35 @@ func (u *AdminRepo) Delete(ctx context.Context, id string) error {
 	}
 	return nil
 }
+
+func (u *AdminRepo) GetByPhone(ctx context.Context, number string) (*models.Admin, error) {
+	var (
+		admin      = models.Admin{}
+		name       sql.NullString
+		email      sql.NullString
+		phone      sql.NullString
+		password   sql.NullString
+		created_at sql.NullString
+		updated_at sql.NullString
+	)
+	if err := u.db.QueryRow(context.Background(), `SELECT id, name, email, phone, password, created_at, updated_at FROM "admin" WHERE phone = $1`, number).Scan(
+		&admin.Id,
+		&name,
+		&email,
+		&phone,
+		&password,
+		&created_at,
+		&updated_at,
+	); err != nil {
+		return &models.Admin{}, err
+	}
+	return &models.Admin{
+		Id:         admin.Id,
+		Name:       name.String,
+		Email:      email.String,
+		Phone:      phone.String,
+		Password:   password.String,
+		Created_at: created_at.String,
+		Updated_at: updated_at.String,
+	}, nil
+}

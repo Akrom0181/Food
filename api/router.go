@@ -36,8 +36,8 @@ func NewApi(r *gin.Engine, cfg *config.Config, storage storage.IStorage, logger 
 	v1.DELETE("/deletefiles", h.DeleteFile)
 
 	v1.POST("/user/sendcode", h.UserRegister)
-	v1.POST("/user/verifycode", h.UserRegisterConfirm)
-	v1.POST("/user/login", h.UserLogin)
+	v1.POST("/user/register", h.Register)
+	// v1.POST("/user/login", h.UserLogin)
 	v1.POST("/user/byphoneconfirm", h.UserLoginByPhoneConfirm)
 
 	// v1.POST("/admin/sendcode", h.AdminRegister)
