@@ -378,13 +378,6 @@ definitions:
       smscode:
         type: string
     type: object
-  models.UserLoginRequest:
-    properties:
-      login:
-        type: string
-      password:
-        type: string
-    type: object
   models.UserLoginResponse:
     properties:
       access_token:
@@ -1966,6 +1959,54 @@ paths:
       summary: Update User
       tags:
       - user
+  /food/api/v1/uploadfiles:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload Multiple Files
+      operationId: upload_multiple_files
+      parameters:
+      - collectionFormat: csv
+        description: File to upload
+        in: formData
+        items:
+          type: file
+        name: file
+        required: true
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Upload Multiple Files
+      tags:
+      - Upload File
   /food/api/v1/user/byphoneconfirm:
     post:
       consumes:
@@ -2000,41 +2041,7 @@ paths:
       summary: Customer login by phone confirmation
       tags:
       - auth
-  /food/api/v1/user/login:
-    post:
-      consumes:
-      - application/json
-      description: Login to Khorezm_Shashlik
-      parameters:
-      - description: login
-        in: body
-        name: login
-        required: true
-        schema:
-          $ref: '#/definitions/models.UserLoginRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/models.UserLoginResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.Response'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/models.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.Response'
-      summary: User login
-      tags:
-      - auth
-  /food/api/v1/user/verifycode:
+  /food/api/v1/user/register:
     post:
       consumes:
       - application/json
