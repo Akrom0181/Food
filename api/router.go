@@ -32,7 +32,7 @@ func NewApi(r *gin.Engine, cfg *config.Config, storage storage.IStorage, logger 
 
 	v1 := r.Group("/food/api/v1")
 
-	// v1.POST("/uploadfiles", h.UploadFiles)
+	v1.POST("/uploadfiles", h.UploadFiles)
 	v1.DELETE("/deletefiles", h.DeleteFile)
 
 	v1.POST("/user/sendcode", h.UserRegister)
