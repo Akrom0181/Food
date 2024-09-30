@@ -56,6 +56,10 @@ CREATE TABLE IF NOT EXISTS "order" (
   user_id UUID NOT NULL REFERENCES "user"(id),
   total_price DECIMAL NOT NULL,
   status VARCHAR NOT NULL CHECK (status IN ('pending', 'confirmed', 'picked_up', 'delivered')) DEFAULT 'pending',
+  delivery_status NOT NULL CHECK(delivery_status('olib ketish', 'yetkazib berish'))
+  longitude DECIMAL(9,6) NOT NULL,
+  latitude DECIMAL(9,6) NOT NULL,
+  address_name VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT now(),
   updated_at TIMESTAMP DEFAULT now()
 );

@@ -2252,6 +2252,93 @@ const docTemplate = `{
                 }
             }
         },
+        "/food/api/v1/orderStatus/{id}": {
+            "patch": {
+                "description": "Change the status of an order",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "Change Order Status",
+                "operationId": "change_order_status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New Order Status",
+                        "name": "status",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.PatchOrderStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Order status updated successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/food/api/v1/sendcode": {
             "post": {
                 "description": "Registering to Khorezm_Shashlik",
@@ -3177,11 +3264,23 @@ const docTemplate = `{
         "models.Order": {
             "type": "object",
             "properties": {
+                "address_name": {
+                    "type": "string"
+                },
                 "created_at": {
+                    "type": "string"
+                },
+                "delivery_status": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
                 },
                 "order_items": {
                     "type": "array",
@@ -3249,6 +3348,15 @@ const docTemplate = `{
         "models.OrderUpdateS": {
             "type": "object",
             "properties": {
+                "address_name": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
                 "order_items": {
                     "type": "array",
                     "items": {
@@ -3260,6 +3368,14 @@ const docTemplate = `{
                 },
                 "total_price": {
                     "type": "number"
+                }
+            }
+        },
+        "models.PatchOrderStatusRequest": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string"
                 }
             }
         },
@@ -3307,6 +3423,18 @@ const docTemplate = `{
         "models.SwaggerOrderCreate": {
             "type": "object",
             "properties": {
+                "address_name": {
+                    "type": "string"
+                },
+                "delivery_status": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
                 "user_id": {
                     "type": "string"
                 }

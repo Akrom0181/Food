@@ -190,10 +190,18 @@ definitions:
     type: object
   models.Order:
     properties:
+      address_name:
+        type: string
       created_at:
+        type: string
+      delivery_status:
         type: string
       id:
         type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
       order_items:
         items:
           $ref: '#/definitions/models.OrderItem'
@@ -237,6 +245,12 @@ definitions:
     type: object
   models.OrderUpdateS:
     properties:
+      address_name:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
       order_items:
         items:
           $ref: '#/definitions/models.UpdateOrderItem'
@@ -245,6 +259,11 @@ definitions:
         type: string
       total_price:
         type: number
+    type: object
+  models.PatchOrderStatusRequest:
+    properties:
+      status:
+        type: string
     type: object
   models.Product:
     properties:
@@ -275,6 +294,14 @@ definitions:
     type: object
   models.SwaggerOrderCreate:
     properties:
+      address_name:
+        type: string
+      delivery_status:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
       user_id:
         type: string
     type: object
@@ -1695,6 +1722,55 @@ paths:
                   type: string
               type: object
       summary: Create Order
+      tags:
+      - order
+  /food/api/v1/orderStatus/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Change the status of an order
+      operationId: change_order_status
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New Order Status
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/models.PatchOrderStatusRequest'
+      responses:
+        "200":
+          description: Order status updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Change Order Status
       tags:
       - order
   /food/api/v1/sendcode:

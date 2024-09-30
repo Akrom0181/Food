@@ -35,7 +35,7 @@ func NewApi(r *gin.Engine, cfg *config.Config, storage storage.IStorage, logger 
 	v1.POST("/uploadfiles", h.UploadFiles)
 	v1.DELETE("/deletefiles", h.DeleteFile)
 
-	v1.POST("/user/sendcode", h.UserRegister)
+	v1.POST("/sendcode", h.UserRegister)
 	v1.POST("/user/register", h.Register)
 	// v1.POST("/user/login", h.UserLogin)
 	v1.POST("/user/byphoneconfirm", h.UserLoginByPhoneConfirm)
@@ -55,7 +55,7 @@ func NewApi(r *gin.Engine, cfg *config.Config, storage storage.IStorage, logger 
 	v1.GET("/getallorders", h.GetAllOrders)
 	v1.PUT("/updateorder", h.UpdateOrder)
 	v1.DELETE("/deleteorder/:id", h.DeleteOrder)
-	// r.PATCH("/changeorderstatus", h.ChangeStatus)
+	v1.PATCH("/orderStatus/:id", h.ChangeOrderStatus)
 
 	v1.POST("/createadmin", h.CreateAdmin)
 	v1.GET("/getbyidadmin/:id", h.GetAdminByID)

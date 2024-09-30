@@ -79,7 +79,7 @@ type IOrderStorage interface {
 	GetOrder(ctx context.Context, id string) (*models.OrderCreateRequest, error)
 	Update(ctx context.Context, id string, updatedOrder *models.Order) (*models.OrderCreateRequest, error)
 	Delete(ctx context.Context, id string) error
-	// ChangeStatus(context.Context, *models.ChangeStatus) (string, error)
+	ChangeOrderStatus(ctx context.Context, req *models.PatchOrderStatusRequest, orderId string) (string, error)
 }
 
 type ICourierAssignmentStorage interface {

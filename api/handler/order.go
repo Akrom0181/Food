@@ -145,47 +145,6 @@ func (h *Handler) GetAllOrders(c *gin.Context) {
 	c.JSON(http.StatusOK, products)
 }
 
-// // ID           change status
-// // @Router      /changeorderstatus [PATCH]
-// // @Summary		change status of order
-// // @Description change status of order
-// // @Tags		order
-// // @Accept		json
-// // @Produce		json
-// // @Param		id path string true "Order Id"
-// // @Param 		Order body models.GetOrderStatus true "UpdateOrderStatus"
-// // @Success		200  {object}  string
-// // @Response	400  {object}  Response{data=string} "Bad Request"
-// // @Failure		500  {object}  Response{data=string} "Server error"
-// func (h *Handler) ChangeStatus(c *gin.Context) {
-// 	status := models.ChangeStatus{}
-
-// 	if err := c.ShouldBindJSON(&status); err != nil {
-// 		h.log.Error(err.Error() + " : " + "error ChangeStatus Should Bind Json!")
-// 		c.JSON(http.StatusBadRequest, "Please, enter valid data!")
-// 		return
-// 	}
-
-// 	id := c.Param("id")
-// 	order, err := h.storage.Order().GetByID(c.Request.Context(), id)
-// 	if err != nil {
-// 		h.log.Error(err.Error() + ":" + "Error Order Not Found")
-// 		c.JSON(http.StatusBadRequest, "Order not found!")
-// 		return
-// 	}
-
-// 	order.Status = status.Status
-// 	order.Id = status.Id
-
-// 	_, err = h.storage.Order().ChangeStatus(c.Request.Context(), &status)
-// 	if err != nil {
-// 		h.log.Error(err.Error() + ":" + "Error ChangeStatus Order")
-// 		c.JSON(http.StatusInternalServerError, "Server error!")
-// 		return
-// 	}
-// 	h.log.Info("Order status changed successfully")
-// }
-
 // @ID 			update_order
 // @Router 		/food/api/v1/updateorder/{id} [PUT]
 // @Summary 	Update Order
@@ -247,13 +206,58 @@ func (h *Handler) DeleteOrder(c *gin.Context) {
 		return
 	}
 
-	err = h.storage.Product().Delete(context.Background(), id)
+	err = h.storage.Order().Delete(context.Background(), id)
 	if err != nil {
 		h.log.Error(err.Error() + ":" + "error while deleting order")
 		c.JSON(http.StatusBadRequest, "please input valid data")
 		return
 	}
 
-	h.log.Info("Product deleted successfully!")
+	h.log.Info("Order deleted successfully!")
 	c.JSON(http.StatusOK, id)
+}
+
+// @ID             change_order_status
+// @Router         /food/api/v1/orderStatus/{id} [PATCH]
+// @Summary        Change Order Status
+// @Description    Change the status of an order
+// @Tags           order
+// @Accept         json
+// @Produces       json
+// @Param          id path string true "Order ID"
+// @Param          status body models.PatchOrderStatusRequest true "New Order Status"
+// @Success        200 {object} Response{data=string} "Order status updated successfully"
+// @Response       400 {object} Response{data=string} "Bad Request"
+// @Response       500 {object} Response{data=string} "Server error"
+func (h *Handler) ChangeOrderStatus(c *gin.Context) {
+	// Get order ID from the URL
+	orderId := c.Param("id")
+
+	// Initialize the request body struct
+	req := models.PatchOrderStatusRequest{}
+
+	// Check if order ID is provided
+	if orderId == "" {
+		h.log.Error("missing order id")
+		c.JSON(http.StatusBadRequest, Response{Data: "Order ID is required"})
+		return
+	}
+
+	// Bind the JSON request body to the req variable
+	if err := c.ShouldBindJSON(&req); err != nil {
+		h.log.Error("failed to bind request body: " + err.Error())
+		c.JSON(http.StatusBadRequest, Response{Data: "Invalid request body"})
+		return
+	}
+
+	// Call the repository method to change the order status
+	resp, err := h.storage.Order().ChangeOrderStatus(c.Request.Context(), &req, orderId)
+	if err != nil {
+		h.log.Error("failed to update order status: " + err.Error())
+		c.JSON(http.StatusInternalServerError, Response{Data: "Server Error!"})
+		return
+	}
+
+	h.log.Info("Order status updated successfully")
+	c.JSON(http.StatusOK, Response{Data: resp})
 }

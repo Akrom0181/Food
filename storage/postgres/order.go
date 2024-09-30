@@ -59,10 +59,10 @@ func (o *OrderRepo) Create(ctx context.Context, order *models.OrderCreateRequest
 	}
 
 	// Insert the order
-	orderQuery := `INSERT INTO "order" (id, user_id, total_price, created_at, updated_at) 
-					  VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id`
+	orderQuery := `INSERT INTO "order" (id, user_id, total_price, delivery_status, longitude, latitude, address_name, created_at, updated_at) 
+					  VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id`
 
-	_, err = tx.Exec(context.Background(), orderQuery, orderId, order.Order.UserId, totalSum)
+	_, err = tx.Exec(context.Background(), orderQuery, orderId, order.Order.UserId, totalSum, order.Order.DeliveryStatus, order.Order.Longitude, order.Order.Latitude, order.Order.AddressName)
 	if err != nil {
 		return &models.OrderCreateRequest{}, err
 	}
@@ -102,12 +102,12 @@ func (r *OrderRepo) Update(ctx context.Context, id string, updatedOrder *models.
 	// Update the order
 	orderUpdateQuery := `
 		UPDATE "order"
-		SET user_id = $1, total_price = $2, status = $3, updated_at = CURRENT_TIMESTAMP
-		WHERE id = $4 AND deleted_at IS NULL
+		SET user_id = $1, total_price = $2, status = $3, longitude = $4, latitude = $5, address_name = $6, updated_at = CURRENT_TIMESTAMP
+		WHERE id = $7 AND deleted_at IS NULL
 		RETURNING id, user_id, total_price, status, created_at, updated_at
 	`
 	var order models.Order
-	err = tx.QueryRow(ctx, orderUpdateQuery, updatedOrder.UserId, updatedOrder.TotalPrice, updatedOrder.Status, id).Scan(
+	err = tx.QueryRow(ctx, orderUpdateQuery, updatedOrder.UserId, updatedOrder.TotalPrice, updatedOrder.Status, updatedOrder.Longitude, updatedOrder.Latitude, updatedOrder.AddressName, id).Scan(
 		&order.Id, &order.UserId, &order.TotalPrice, &order.Status, &order.CreatedAt, &order.UpdatedAt,
 	)
 	if err != nil {
@@ -156,10 +156,11 @@ func (o *OrderRepo) GetAll(ctx context.Context, request *models.GetAllOrdersRequ
 		updated_at sql.NullString
 	)
 
-	// Query to retrieve all orders
+	// Query to retrieve all orders, sorted by the latest created orders at the top
 	orderQuery := `
-		SELECT id, user_id, total_price, status, created_at, updated_at
+		SELECT id, user_id, total_price, delivery_status, status, longitude, latitude, address_name, created_at, updated_at
 		FROM "order"
+		ORDER BY created_at DESC
 	`
 	rows, err := o.db.Query(ctx, orderQuery)
 	if err != nil {
@@ -170,7 +171,7 @@ func (o *OrderRepo) GetAll(ctx context.Context, request *models.GetAllOrdersRequ
 	// Iterate over the retrieved orders
 	for rows.Next() {
 		var order models.Order
-		err = rows.Scan(&order.Id, &order.UserId, &order.TotalPrice, &order.Status, &created_at, &updated_at)
+		err = rows.Scan(&order.Id, &order.UserId, &order.TotalPrice, &order.DeliveryStatus, &order.Status, &order.Longitude, &order.Latitude, &order.AddressName, &created_at, &updated_at)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan order: %w", err)
 		}
@@ -208,12 +209,16 @@ func (o *OrderRepo) GetAll(ctx context.Context, request *models.GetAllOrdersRequ
 
 		orders = append(orders, models.OrderCreateRequest{
 			Order: models.Order{
-				Id:         order.Id,
-				UserId:     order.UserId,
-				TotalPrice: order.TotalPrice,
-				Status:     order.Status,
-				CreatedAt:  created_at.String,
-				UpdatedAt:  updated_at.String,
+				Id:             order.Id,
+				UserId:         order.UserId,
+				TotalPrice:     order.TotalPrice,
+				DeliveryStatus: order.DeliveryStatus,
+				Status:         order.Status,
+				Longitude:      order.Longitude,
+				Latitude:       order.Latitude,
+				AddressName:    order.AddressName,
+				CreatedAt:      created_at.String,
+				UpdatedAt:      updated_at.String,
 			},
 			Items: orderItems,
 		})
@@ -232,15 +237,14 @@ func (r *OrderRepo) GetOrder(ctx context.Context, id string) (*models.OrderCreat
 		updated_at sql.NullString
 	)
 
-	// Query to retrieve the specific order by ID
 	orderQuery := `
-		SELECT id, user_id, total_price, status, created_at, updated_at
+		SELECT id, user_id, total_price, status, longitude, latitude, address_name, created_at, updated_at
 		FROM "order"
 		WHERE id = $1
 	`
 
 	var order models.Order
-	err := r.db.QueryRow(ctx, orderQuery, id).Scan(&order.Id, &order.UserId, &order.TotalPrice, &order.Status, &created_at, &updated_at)
+	err := r.db.QueryRow(ctx, orderQuery, id).Scan(&order.Id, &order.UserId, &order.TotalPrice, &order.Status, &order.Longitude, &order.Latitude, &order.AddressName, &created_at, &updated_at)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("order not found")
@@ -248,11 +252,9 @@ func (r *OrderRepo) GetOrder(ctx context.Context, id string) (*models.OrderCreat
 		return nil, fmt.Errorf("failed to retrieve order: %w", err)
 	}
 
-	// Assigning created_at and updated_at after handling NullString
 	order.CreatedAt = created_at.String
 	order.UpdatedAt = updated_at.String
 
-	// Query to retrieve order items for the current order
 	orderItemQuery := `
 		SELECT id, product_id, order_id, quantity, price, total, created_at, updated_at
 		FROM "orderiteam"
@@ -283,7 +285,6 @@ func (r *OrderRepo) GetOrder(ctx context.Context, id string) (*models.OrderCreat
 		return nil, fmt.Errorf("error iterating order items: %w", err)
 	}
 
-	// Returning the order with its items
 	return &models.OrderCreateRequest{
 		Order: order,
 		Items: orderItems,
@@ -330,4 +331,43 @@ func (r *OrderRepo) Delete(ctx context.Context, id string) error {
 	}
 
 	return nil
+}
+
+func (o *OrderRepo) ChangeOrderStatus(ctx context.Context, req *models.PatchOrderStatusRequest, orderId string) (string, error) {
+	// Map to store valid statuses
+	validStatuses := map[string]bool{
+		"pending":   true,
+		"confirmed": true,
+		"picked_up": true,
+		"delivered": true,
+	}
+
+	// Check if the provided status is valid
+	if !validStatuses[req.Status] {
+		return "", fmt.Errorf("invalid status value: %s", req.Status)
+	}
+
+	tx, err := o.db.Begin(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback(ctx)
+		}
+	}()
+
+	// Update query
+	updateQuery := `UPDATE "order" SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`
+	_, err = tx.Exec(ctx, updateQuery, req.Status, orderId)
+	if err != nil {
+		return "", fmt.Errorf("failed to update order status: %w", err)
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return "Status changed successfully", nil
 }

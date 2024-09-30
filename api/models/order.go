@@ -21,34 +21,51 @@ type GetOrderStatus struct {
 }
 
 type Order struct {
-	Id         string      `json:"id,omitempty"`
-	UserId     string      `json:"user_id,omitempty"`
-	TotalPrice float64     `json:"total_price,omitempty"`
-	Status     string      `json:"status,omitempty"`
-	CreatedAt  string      `json:"created_at,omitempty"`
-	UpdatedAt  string      `json:"updated_at,omitempty"`
-	OrderItems []OrderItem `json:"order_items,omitempty"`
+	Id             string      `json:"id,omitempty"`
+	UserId         string      `json:"user_id,omitempty"`
+	TotalPrice     float64     `json:"total_price,omitempty"`
+	Longitude      float64     `json:"longitude"`
+	Latitude       float64     `json:"latitude"`
+	AddressName    string      `json:"address_name"`
+	Status         string      `json:"status,omitempty"`
+	DeliveryStatus string      `json:"delivery_status"`
+	CreatedAt      string      `json:"created_at"`
+	UpdatedAt      string      `json:"updated_at"`
+	OrderItems     []OrderItem `json:"order_items,omitempty"`
 }
 
 type OrderCreate struct {
-	UserId string `json:"user_id,omitempty"`
-	Status string `json:"status"`
+	UserId      string  `json:"user_id,omitempty"`
+	Status      string  `json:"status"`
+	Longitude   float64 `json:"longitude"`
+	Latitude    float64 `json:"latitude"`
+	AddressName string  `json:"address_name"`
 }
 
 type SwaggerOrderCreate struct {
-	UserId string `json:"user_id,omitempty"`
+	UserId         string  `json:"user_id,omitempty"`
+	DeliveryStatus string  `json:"delivery_status"`
+	Longitude      float64 `json:"longitude"`
+	Latitude       float64 `json:"latitude"`
+	AddressName    string  `json:"address_name"`
 }
 
 type OrderUpdate struct {
-	TotalPrice float64     `json:"total_price"`
-	Status     string      `json:"status"`
-	OrderItems []OrderItem `json:"order_items,omitempty"`
+	Longitude   float64     `json:"longitude"`
+	Latitude    float64     `json:"latitude"`
+	AddressName string      `json:"address_name"`
+	TotalPrice  float64     `json:"total_price"`
+	Status      string      `json:"status"`
+	OrderItems  []OrderItem `json:"order_items,omitempty"`
 }
 
 type OrderUpdateS struct {
-	TotalPrice float64           `json:"total_price"`
-	Status     string            `json:"status"`
-	OrderItems []UpdateOrderItem `json:"order_items,omitempty"`
+	Longitude   float64           `json:"longitude"`
+	Latitude    float64           `json:"latitude"`
+	AddressName string            `json:"address_name"`
+	TotalPrice  float64           `json:"total_price"`
+	Status      string            `json:"status"`
+	OrderItems  []UpdateOrderItem `json:"order_items,omitempty"`
 }
 
 type OrderPrimaryKey struct {
@@ -76,3 +93,6 @@ type SwaggerOrderCreateRequest struct {
 	Items []SwaggerOrderItems `json:"items"`
 }
 
+type PatchOrderStatusRequest struct {
+	Status string `json:"status"`
+}
