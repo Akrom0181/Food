@@ -334,7 +334,6 @@ func (r *OrderRepo) Delete(ctx context.Context, id string) error {
 }
 
 func (o *OrderRepo) ChangeOrderStatus(ctx context.Context, req *models.PatchOrderStatusRequest, orderId string) (string, error) {
-	// Map to store valid statuses
 	validStatuses := map[string]bool{
 		"pending":   true,
 		"confirmed": true,
@@ -342,7 +341,6 @@ func (o *OrderRepo) ChangeOrderStatus(ctx context.Context, req *models.PatchOrde
 		"delivered": true,
 	}
 
-	// Check if the provided status is valid
 	if !validStatuses[req.Status] {
 		return "", fmt.Errorf("invalid status value: %s", req.Status)
 	}
@@ -357,7 +355,6 @@ func (o *OrderRepo) ChangeOrderStatus(ctx context.Context, req *models.PatchOrde
 		}
 	}()
 
-	// Update query
 	updateQuery := `UPDATE "order" SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`
 	_, err = tx.Exec(ctx, updateQuery, req.Status, orderId)
 	if err != nil {
