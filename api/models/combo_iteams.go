@@ -1,55 +1,55 @@
 package models
 
-type OrderItem struct {
+type ComboItem struct {
 	Id         string  `json:"id"`
 	ProductId  string  `json:"product_id"`
-	OrderId    string  `json:"order_id"`
+	ComboId    string  `json:"combo_id"`
 	Quantity   int     `json:"quantity"`
 	Price      float64 `json:"price"`
 	TotalPrice float64 `json:"total_price"`
-	CreatedAt  string  `json:"created_at"`
-	UpdatedAt  string  `json:"updated_at"`
+	CreatedAt  string  `json:"created_at,omitempty"`
+	UpdatedAt  string  `json:"updated_at,omitempty"`
 }
 
-type CreateOrderItem struct {
+type CreateComboItem struct {
 	ProductId  string  `json:"product_id"`
-	OrderId    string  `json:"order_id"`
+	ComboId    string  `json:"combo_id"`
 	Quantity   int     `json:"quantity"`
 	Price      float64 `json:"price"`
 	TotalPrice int64   `json:"total_price"`
 }
 
-type UpdateOrderItem struct {
+type UpdateComboItem struct {
 	ProductId string  `json:"product_id"`
 	Quantity  int     `json:"quantity"`
 	Price     float64 `json:"price"`
 }
 
-type GetOrderItem struct {
+type GetComboItem struct {
 	Id        string  `json:"id"`
-	OrderId   string  `json:"order_id"`
+	ComboId   string  `json:"combo_id"`
 	ProductId string  `json:"product_id"`
 	Quantity  int     `json:"quantity"`
 	Price     float64 `json:"price"`
 }
 
-type GetAllOrderItemsRequest struct {
+type GetAllComboItemsRequest struct {
 	Search string `json:"search"`
 	Page   uint64 `json:"page"`
 	Limit  uint64 `json:"limit"`
 }
 
-type GetAllOrderItemsResponse struct {
-	OrderItems []OrderItem `json:"order_items"`
+type GetAllComboItemsResponse struct {
+	ComboItems []ComboItem `json:"combo_items"`
 	Count      int64       `json:"count"`
 }
 
-type OrderItemsGetListResponse struct {
+type ComboItemsGetListResponse struct {
 	Count int          `json:"count"`
-	Items []*OrderItem `json:"order_items"`
+	Items []*ComboItem `json:"combo_items"`
 }
 
-type SwaggerOrderItems struct {
-	ProductId string  `json:"product_id,omitempty"`
-	Quantity  int     `json:"quantity,omitempty"`
-}
+// type SwaggerComboItems struct {
+// 	ProductId string `json:"product_id,omitempty"`
+// 	Quantity  int    `json:"quantity,omitempty"`
+// }

@@ -42,6 +42,8 @@ func NewApi(r *gin.Engine, cfg *config.Config, storage storage.IStorage, logger 
 	// v1.POST("/admin/verifycode", h.AdminRegisterConfirm)
 	v1.POST("/admin/login", h.AdminLogin)
 
+	v1.POST("/combo", h.CreateCombo)
+
 	v1.POST("/category", h.CreateCategory)
 	v1.GET("/getbycategory/:id", h.GetCategoryByID)
 	v1.GET("/getallcategory", h.GetAllCategories)

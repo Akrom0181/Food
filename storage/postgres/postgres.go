@@ -12,15 +12,16 @@ import (
 )
 
 type Store struct {
-	Pool               *pgxpool.Pool
-	db                 *pgxpool.Pool
-	admin              *AdminRepo
+	Pool  *pgxpool.Pool
+	db    *pgxpool.Pool
+	admin *AdminRepo
+	combo *ComboRepo
 	// redis              storage.IRedisStorage
-	log                logger.LoggerI
-	user               *UserRepo
+	log  logger.LoggerI
+	user *UserRepo
 	// auth               *AuthRepo
 	branch             *BranchRepo
-	banner			   *BannerRepo
+	banner             *BannerRepo
 	category           *CategoryRepo
 	order              *OrderRepo
 	product            *ProductRepo
@@ -78,6 +79,16 @@ func (s *Store) User() storage.IUserStorage {
 	return s.user
 }
 
+func (s *Store) Combo() storage.IComboStorage {
+	if s.combo == nil {
+		s.combo = &ComboRepo{
+			db:  s.db,
+			log: s.log,
+		}
+	}
+	return s.combo
+}
+
 func (s *Store) Admin() storage.IAdminStorage {
 	if s.admin == nil {
 		s.admin = &AdminRepo{
@@ -118,12 +129,12 @@ func (s *Store) Branch() storage.IBranchStorage {
 
 func (s *Store) Banner() storage.IBannerStorage {
 	if s.banner == nil {
-        s.banner = &BannerRepo{
-            db:  s.db,
-            log: s.log,
-        }
-    }
-    return s.banner
+		s.banner = &BannerRepo{
+			db:  s.db,
+			log: s.log,
+		}
+	}
+	return s.banner
 }
 
 func (s *Store) Category() storage.ICategoryStorage {
@@ -188,5 +199,3 @@ func (s *Store) Notification() storage.INotificationStorage {
 	}
 	return s.notification
 }
-
-

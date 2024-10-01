@@ -10,6 +10,7 @@ type IStorage interface {
 	CloseDB()
 	Admin() IAdminStorage
 	User() IUserStorage
+	Combo() IComboStorage
 	Branch() IBranchStorage
 	Banner() IBannerStorage
 	Category() ICategoryStorage
@@ -30,6 +31,14 @@ type IUserStorage interface {
 	GetByLogin(ctx context.Context, login string) (models.User, error)
 	CheckPhoneNumberExist(ctx context.Context, id string) (models.User, error)
 	GetByPhone(ctx context.Context, number string) (*models.User, error)
+}
+
+type IComboStorage interface {
+	Create(context.Context, *models.ComboCreateRequest) (*models.ComboCreateRequest, error)
+	// GetAll(ctx context.Context, request *models.GetAllCombosRequest) (*models.GetAllCombosResponse, error)
+// 	GetByID(ctx context.Context, id string) (*models.Combo, error)
+// 	Update(context.Context, *models.Combo) (*models.Combo, error)
+// 	Delete(context.Context, string) error
 }
 
 type IAdminStorage interface {

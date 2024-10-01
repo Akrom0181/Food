@@ -290,6 +290,31 @@ definitions:
       statusCode:
         type: integer
     type: object
+  models.SwaggerComboCreate:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+  models.SwaggerComboCreateRequest:
+    properties:
+      combo:
+        $ref: '#/definitions/models.SwaggerComboCreate'
+      items:
+        items:
+          $ref: '#/definitions/models.SwaggerComboItems'
+        type: array
+    type: object
+  models.SwaggerComboItems:
+    properties:
+      product_id:
+        type: string
+      quantity:
+        type: integer
+    type: object
   models.SwaggerOrderCreate:
     properties:
       address_name:
@@ -538,6 +563,52 @@ paths:
       summary: Update Category
       tags:
       - category
+  /food/api/v1/combo:
+    post:
+      consumes:
+      - application/json
+      description: Create a new combo with a set of items
+      operationId: create_combo
+      parameters:
+      - description: CreateComboRequest
+        in: body
+        name: Combo
+        required: true
+        schema:
+          $ref: '#/definitions/models.SwaggerComboCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Success Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Create Combo
+      tags:
+      - combo
   /food/api/v1/createadmin:
     post:
       consumes:

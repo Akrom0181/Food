@@ -109,15 +109,25 @@ CREATE TABLE IF NOT EXISTS "locations" (
   updated_at TIMESTAMP DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS "combos" (
+CREATE TABLE IF NOT EXISTS "combo" (
   id UUID PRIMARY KEY,
   name VARCHAR,
   description TEXT,
   price DECIMAL(10, 2),
   created_at TIMESTAMP DEFAULT now(),
-  updated_at TIMESTAMP DEFAULT now()
+  updated_at TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS "combo_items" (
+  id UUID PRIMARY KEY,
+  combo_id UUID REFERENCES "combo"(id),
+  total_price DECIMAL(10, 2) NOT NULL,
+  price DECIMAL(10, 2),
+  product_id UUID REFERENCES "product"(id),
+  quantity INT DEFAULT 1,
+  created_at TIMESTAMP DEFAULT now(),
+  updated_at TIMESTAMP
+);
 
 CREATE TABLE IF NOT EXISTS "banner" (
   image_url VARCHAR,
