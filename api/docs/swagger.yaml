@@ -129,8 +129,6 @@ definitions:
         type: string
       name:
         type: string
-      password:
-        type: string
       phone:
         type: string
     type: object
@@ -376,8 +374,6 @@ definitions:
         type: string
       name:
         type: string
-      password:
-        type: string
       phone:
         type: string
     type: object
@@ -390,8 +386,6 @@ definitions:
       id:
         type: string
       name:
-        type: string
-      password:
         type: string
       phone:
         type: string
@@ -415,15 +409,6 @@ definitions:
         type: string
       refresh_token:
         type: string
-    type: object
-  models.UserRegisterConfRequest:
-    properties:
-      mail:
-        type: string
-      otp:
-        type: string
-      user:
-        $ref: '#/definitions/models.User'
     type: object
   models.UserRegisterRequest:
     properties:
@@ -2128,7 +2113,7 @@ paths:
         name: register
         required: true
         schema:
-          $ref: '#/definitions/models.UserRegisterConfRequest'
+          $ref: '#/definitions/models.CreateUser'
       produces:
       - application/json
       responses:

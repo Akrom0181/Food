@@ -3,14 +3,14 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"errors"
+	// "errors"
 	"fmt"
 	"food/api/models"
 	"food/pkg/logger"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"golang.org/x/crypto/bcrypt"
+	// "golang.org/x/crypto/bcrypt"
 )
 
 type UserRepo struct {
@@ -40,8 +40,7 @@ func (c *UserRepo) GetByLogin(ctx context.Context, login string) (models.User, e
 		phone,
 		email,
 		created_at, 
-		updated_at,
-		password
+		updated_at
 		FROM "user" WHERE email = $1`
 
 	row := c.db.QueryRow(ctx, query, login)
@@ -55,7 +54,6 @@ func (c *UserRepo) GetByLogin(ctx context.Context, login string) (models.User, e
 		&email,
 		&createdat,
 		&updatedat,
-		&user.Password,
 	)
 
 	if err != nil {
@@ -72,32 +70,32 @@ func (c *UserRepo) GetByLogin(ctx context.Context, login string) (models.User, e
 	return user, nil
 }
 
-func (c *UserRepo) Login(ctx context.Context, login models.User) (string, error) {
-	var hashedPass string
+// func (c *UserRepo) Login(ctx context.Context, login models.User) (string, error) {
+// 	var hashedPass string
 
-	query := `SELECT password
-	FROM "user"
-	WHERE phone = $1`
+// 	query := `SELECT password
+// 	FROM "user"
+// 	WHERE phone = $1`
 
-	err := c.db.QueryRow(ctx, query,
-		login.Phone,
-	).Scan(&hashedPass)
+// 	err := c.db.QueryRow(ctx, query,
+// 		login.Phone,
+// 	).Scan(&hashedPass)
 
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return "", errors.New("incorrect login")
-		}
-		c.log.Error("failed to get user password from database", logger.Error(err))
-		return "", err
-	}
+// 	if err != nil {
+// 		if err == sql.ErrNoRows {
+// 			return "", errors.New("incorrect login")
+// 		}
+// 		c.log.Error("failed to get user password from database", logger.Error(err))
+// 		return "", err
+// 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(hashedPass), []byte(login.Password))
-	if err != nil {
-		return "", errors.New("password mismatch")
-	}
+// 	err = bcrypt.CompareHashAndPassword([]byte(hashedPass), []byte(login.Password))
+// 	if err != nil {
+// 		return "", errors.New("password mismatch")
+// 	}
 
-	return "Logged in successfully", nil
-}
+// 	return "Logged in successfully", nil
+// }
 
 func (c *UserRepo) CheckPhoneNumberExist(ctx context.Context, id string) (models.User, error) {
 
@@ -121,11 +119,9 @@ func (u *UserRepo) Create(ctx context.Context, user *models.User) (*models.User,
 		email,
 		name,
 		phone,
-		password,
-		role,
 		created_at,
 		updated_at)
-		VALUES($1,$2,$3,$4,$5,$6, CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) 
+		VALUES($1,$2,$3,$4, CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) 
 	`
 
 	_, err := u.db.Exec(context.Background(), query,
@@ -133,7 +129,6 @@ func (u *UserRepo) Create(ctx context.Context, user *models.User) (*models.User,
 		user.Email,
 		user.Name,
 		user.Phone,
-		user.Password,
 	)
 
 	if err != nil {
@@ -144,7 +139,6 @@ func (u *UserRepo) Create(ctx context.Context, user *models.User) (*models.User,
 		Email:      user.Email,
 		Name:       user.Name,
 		Phone:      user.Phone,
-		Password:   user.Password,
 		Created_at: user.Created_at,
 		Updated_at: user.Updated_at,
 	}, nil
@@ -155,16 +149,14 @@ func (u *UserRepo) Update(ctx context.Context, user *models.User) (*models.User,
 		email=$1,
 		name=$2,
 		phone=$3,
-		password=$4,
-		role=$5,
+		role=$4,
 		updated_at=CURRENT_TIMESTAMP
-		WHERE id = $6
+		WHERE id = $5
 	`
 	_, err := u.db.Exec(context.Background(), query,
 		user.Name,
 		user.Email,
 		user.Phone,
-		user.Password,
 		user.Id,
 	)
 	if err != nil {
@@ -175,7 +167,6 @@ func (u *UserRepo) Update(ctx context.Context, user *models.User) (*models.User,
 		Name:       user.Name,
 		Email:      user.Email,
 		Phone:      user.Phone,
-		Password:   user.Password,
 		Created_at: user.Created_at,
 		Updated_at: user.Updated_at,
 	}, nil
@@ -200,7 +191,6 @@ func (u *UserRepo) GetAll(ctx context.Context, req *models.GetAllUsersRequest) (
 		name,
         email,
         phone,
-        password,
         created_at,
         updated_at FROM "user"`+filter)
 	if err != nil {
@@ -213,7 +203,6 @@ func (u *UserRepo) GetAll(ctx context.Context, req *models.GetAllUsersRequest) (
 			name       sql.NullString
 			email      sql.NullString
 			phone      sql.NullString
-			password   sql.NullString
 			created_at sql.NullString
 			updated_at sql.NullString
 		)
@@ -223,7 +212,6 @@ func (u *UserRepo) GetAll(ctx context.Context, req *models.GetAllUsersRequest) (
 			&name,
 			&email,
 			&phone,
-			&password,
 			&created_at,
 			&updated_at); err != nil {
 			return resp, err
@@ -234,7 +222,6 @@ func (u *UserRepo) GetAll(ctx context.Context, req *models.GetAllUsersRequest) (
 			Name:       name.String,
 			Email:      email.String,
 			Phone:      phone.String,
-			Password:   password.String,
 			Created_at: created_at.String,
 			Updated_at: updated_at.String,
 		})
@@ -248,16 +235,14 @@ func (u *UserRepo) GetByID(ctx context.Context, id string) (*models.User, error)
 		name       sql.NullString
 		email      sql.NullString
 		phone      sql.NullString
-		password   sql.NullString
 		created_at sql.NullString
 		updated_at sql.NullString
 	)
-	if err := u.db.QueryRow(context.Background(), `SELECT id, name, email, phone, password, created_at, updated_at FROM "user" WHERE id = $1`, id).Scan(
+	if err := u.db.QueryRow(context.Background(), `SELECT id, name, email, phone, created_at, updated_at FROM "user" WHERE id = $1`, id).Scan(
 		&user.Id,
 		&name,
 		&email,
 		&phone,
-		&password,
 		&created_at,
 		&updated_at,
 	); err != nil {
@@ -268,7 +253,6 @@ func (u *UserRepo) GetByID(ctx context.Context, id string) (*models.User, error)
 		Name:       name.String,
 		Email:      email.String,
 		Phone:      phone.String,
-		Password:   password.String,
 		Created_at: created_at.String,
 		Updated_at: updated_at.String,
 	}, nil
@@ -289,16 +273,14 @@ func (u *UserRepo) GetByPhone(ctx context.Context, number string) (*models.User,
 		name       sql.NullString
 		email      sql.NullString
 		phone      sql.NullString
-		password   sql.NullString
 		created_at sql.NullString
 		updated_at sql.NullString
 	)
-	if err := u.db.QueryRow(context.Background(), `SELECT id, name, email, phone, password, created_at, updated_at FROM "user" WHERE phone = $1`, phone).Scan(
+	if err := u.db.QueryRow(context.Background(), `SELECT id, name, email, phone, created_at, updated_at FROM "user" WHERE phone = $1`, phone).Scan(
 		&admin.Id,
 		&name,
 		&email,
 		&phone,
-		&password,
 		&created_at,
 		&updated_at,
 	); err != nil {
@@ -309,7 +291,6 @@ func (u *UserRepo) GetByPhone(ctx context.Context, number string) (*models.User,
 		Name:       name.String,
 		Email:      email.String,
 		Phone:      phone.String,
-		Password:   password.String,
 		Created_at: created_at.String,
 		Updated_at: updated_at.String,
 	}, nil

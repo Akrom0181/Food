@@ -2935,7 +2935,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.UserRegisterConfRequest"
+                            "$ref": "#/definitions/models.CreateUser"
                         }
                     }
                 ],
@@ -3167,9 +3167,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "password": {
                     "type": "string"
                 },
                 "phone": {
@@ -3550,9 +3547,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "password": {
-                    "type": "string"
-                },
                 "phone": {
                     "type": "string"
                 }
@@ -3571,9 +3565,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "password": {
                     "type": "string"
                 },
                 "phone": {
@@ -3609,20 +3600,6 @@ const docTemplate = `{
                 },
                 "refresh_token": {
                     "type": "string"
-                }
-            }
-        },
-        "models.UserRegisterConfRequest": {
-            "type": "object",
-            "properties": {
-                "mail": {
-                    "type": "string"
-                },
-                "otp": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/models.User"
                 }
             }
         },

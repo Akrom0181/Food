@@ -73,7 +73,7 @@ func (h *Handler) UserRegister(c *gin.Context) {
 
 	err := h.service.Auth().UserRegister(c.Request.Context(), loginReq)
 	if err != nil {
-		handleResponseLog(c, h.log, "error while sending sms code to " + loginReq.MobilePhone, http.StatusInternalServerError, err)
+		handleResponseLog(c, h.log, "error while sending sms code to "+loginReq.MobilePhone, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -87,7 +87,7 @@ func (h *Handler) UserRegister(c *gin.Context) {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Param        register body models.UserRegisterConfRequest true "register"
+// @Param        register body models.CreateUser true "register"
 // @Success      201  {object}  models.UserLoginResponse
 // @Failure      400  {object}  models.Response
 // @Failure      404  {object}  models.Response

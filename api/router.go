@@ -9,7 +9,9 @@ import (
 	"food/pkg/logger"
 	"food/service"
 	"food/storage"
+	"log"
 	"net/http"
+	"time"
 
 	// "net/http"
 
@@ -29,7 +31,7 @@ func NewApi(r *gin.Engine, cfg *config.Config, storage storage.IStorage, logger 
 	h := handler.NewStrg(logger, storage, cfg, service)
 	r.Use(customCORSMiddleware())
 	// r.Use(authMiddleware)
-
+	StartBackgroundTask()
 	v1 := r.Group("/food/api/v1")
 
 	v1.POST("/uploadfiles", h.UploadFiles)
@@ -114,4 +116,22 @@ func authMiddleware(c *gin.Context) {
 	}
 
 	c.Next()
+}
+
+func StartBackgroundTask() {
+	ticker := time.NewTicker(10 * time.Second)
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				// Call the GetAllAdmins endpoint periodically
+				resp, err := http.Get("https://food-7u5c.onrender.com/swagger/index.html#/category/getall_category")
+				if err != nil {
+					log.Println("Error running GetAllAdmins task:", err)
+				} else {
+					log.Println("GetAllAdmins status:", resp.Status)
+				}
+			}
+		}
+	}()
 }

@@ -5,7 +5,6 @@ type User struct {
 	Name       string `json:"name"`
 	Email      string `json:"email"`
 	Phone      string `json:"phone"`
-	Password   string `json:"password"`
 	Created_at string `json:"created_at,omitempty"`
 	Updated_at string `json:"updated_at,omitempty"`
 }
@@ -14,14 +13,12 @@ type CreateUser struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
-	Password string `json:"password"`
 }
 
 type UpdateUser struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
-	Password string `json:"password"`
 }
 
 type GetUser struct {
@@ -29,7 +26,6 @@ type GetUser struct {
 	Name       string `json:"name"`
 	Email      string `json:"email"`
 	Phone      string `json:"phone"`
-	Password   string `json:"password"`
 	Created_at string `json:"created_at"`
 	Updated_at string `json:"updated_at"`
 }
