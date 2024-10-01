@@ -1,8 +1,6 @@
 package api
 
 import (
-	// "errors"
-	"errors"
 	_ "food/api/docs"
 	"food/api/handler"
 	"food/config"
@@ -12,8 +10,6 @@ import (
 	"log"
 	"net/http"
 	"time"
-
-	// "net/http"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -109,14 +105,14 @@ func customCORSMiddleware() gin.HandlerFunc {
 	}
 }
 
-func authMiddleware(c *gin.Context) {
-	auth := c.GetHeader("Authorization")
-	if auth == "" {
-		c.AbortWithError(http.StatusUnauthorized, errors.New("unauthorized"))
-	}
+// func authMiddleware(c *gin.Context) {
+// 	auth := c.GetHeader("Authorization")
+// 	if auth == "" {
+// 		c.AbortWithError(http.StatusUnauthorized, errors.New("unauthorized"))
+// 	}
 
-	c.Next()
-}
+// 	c.Next()
+// }
 
 func StartBackgroundTask() {
 	ticker := time.NewTicker(10 * time.Second)
@@ -124,12 +120,12 @@ func StartBackgroundTask() {
 		for {
 			select {
 			case <-ticker.C:
-				// Call the GetAllAdmins endpoint periodically
+				// Call the GetAllCategories endpoint periodically
 				resp, err := http.Get("https://food-7u5c.onrender.com/swagger/index.html#/category/getall_category")
 				if err != nil {
-					log.Println("Error running GetAllAdmins task:", err)
+					log.Println("Error running GetAllCategories task:", err)
 				} else {
-					log.Println("GetAllAdmins status:", resp.Status)
+					log.Println("GetAllCategories status:", resp.Status)
 				}
 			}
 		}
