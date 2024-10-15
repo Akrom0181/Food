@@ -39,9 +39,10 @@ type GetProduct struct {
 }
 
 type GetAllProductsRequest struct {
-	Search string `json:"search"`
-	Page   uint64 `json:"page"`
-	Limit  uint64 `json:"limit"`
+	CategoryId string `json:"category_id"`
+	Search     string `json:"search"`
+	Page       uint64 `json:"page"`
+	Limit      uint64 `json:"limit"`
 }
 
 type GetAllProductsResponse struct {

@@ -78,6 +78,70 @@ definitions:
       updated_at:
         type: string
     type: object
+  models.Combo:
+    properties:
+      combo_items:
+        items:
+          $ref: '#/definitions/models.ComboItem'
+        type: array
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      status:
+        type: string
+      total_price:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  models.ComboCreateRequest:
+    properties:
+      combo:
+        $ref: '#/definitions/models.Combo'
+      items:
+        items:
+          $ref: '#/definitions/models.ComboItem'
+        type: array
+    type: object
+  models.ComboItem:
+    properties:
+      combo_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      price:
+        type: number
+      product_id:
+        type: string
+      quantity:
+        type: integer
+      total_price:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  models.ComboUpdateS:
+    properties:
+      combo_items:
+        items:
+          $ref: '#/definitions/models.UpdateComboItem'
+        type: array
+      description:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    type: object
   models.CreateAdmin:
     properties:
       email:
@@ -108,6 +172,17 @@ definitions:
   models.CreateCategory:
     properties:
       name:
+        type: string
+    type: object
+  models.CreatePayment:
+    properties:
+      is_paid:
+        type: boolean
+      order_id:
+        type: string
+      payment_method:
+        type: string
+      user_id:
         type: string
     type: object
   models.CreateProduct:
@@ -370,6 +445,15 @@ definitions:
     properties:
       name:
         type: string
+    type: object
+  models.UpdateComboItem:
+    properties:
+      price:
+        type: number
+      product_id:
+        type: string
+      quantity:
+        type: integer
     type: object
   models.UpdateOrderItem:
     properties:
@@ -730,6 +814,52 @@ paths:
       summary: Create Branch
       tags:
       - branch
+  /food/api/v1/createpayment:
+    post:
+      consumes:
+      - application/json
+      description: Create a new payment
+      operationId: create_payment
+      parameters:
+      - description: Payment
+        in: body
+        name: payment
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreatePayment'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Create payment
+      tags:
+      - payment
   /food/api/v1/createproduct:
     post:
       consumes:
@@ -1355,6 +1485,55 @@ paths:
       summary: Get all category
       tags:
       - category
+  /food/api/v1/getallcombos:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all Combo
+      operationId: get_all_combos
+      parameters:
+      - description: Search combos by name or description
+        in: query
+        name: search
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Limit number of results per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ComboCreateRequest'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Get All Combos
+      tags:
+      - combo
   /food/api/v1/getallorders:
     get:
       consumes:
@@ -1411,6 +1590,10 @@ paths:
       description: Retrieve all products
       operationId: get_all_products
       parameters:
+      - description: get by category_id
+        in: query
+        name: category_id
+        type: string
       - description: Search products by name or description
         in: query
         name: search
@@ -1658,6 +1841,49 @@ paths:
       summary: Get User by ID
       tags:
       - user
+  /food/api/v1/getcombo/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get_combo by its id
+      operationId: get_combo
+      parameters:
+      - description: Combo Id
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Successfully retrieved combo
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: get_combo
+      tags:
+      - combo
   /food/api/v1/getorder/{id}:
     get:
       consumes:
@@ -1953,6 +2179,57 @@ paths:
       summary: Update Branch
       tags:
       - branch
+  /food/api/v1/updatecombo/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update an existing combo
+      operationId: update_combo
+      parameters:
+      - description: Combo ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: UpdateOrderRequest
+        in: body
+        name: Combo
+        required: true
+        schema:
+          $ref: '#/definitions/models.ComboUpdateS'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Update Combo
+      tags:
+      - combo
   /food/api/v1/updateorder/{id}:
     put:
       consumes:

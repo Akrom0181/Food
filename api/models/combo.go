@@ -16,7 +16,6 @@ type Combo struct {
 	Name        string      `json:"name,omitempty"`
 	Description string      `json:"description,omitempty"`
 	Price       float64     `json:"price,omitempty"`
-	// Discount    float64     `json:"discount,omitempty"`
 	TotalPrice  float64     `json:"total_price,omitempty"`
 	Status      string      `json:"status,omitempty"`
 	CreatedAt   string      `json:"created_at,omitempty"`
@@ -28,22 +27,26 @@ type ComboCreate struct {
 	Name        string  `json:"name,omitempty"`
 	Description string  `json:"description,omitempty"`
 	Price       float64 `json:"price"`
-	// Discount    float64 `json:"discount"`
 }
 
 type SwaggerComboCreate struct {
 	Name        string  `json:"name,omitempty"`
 	Description string  `json:"description,omitempty"`
 	Price       float64 `json:"price"`
-	// Discount    float64 `json:"discount"`
 }
 
 type ComboUpdate struct {
 	Name        string      `json:"name,omitempty"`
 	Description string      `json:"description,omitempty"`
 	Price       float64     `json:"price"`
-	// Discount    float64     `json:"discount"`
 	ComboItems  []ComboItem `json:"combo_items,omitempty"`
+}
+
+type ComboUpdateS struct {
+	Name        string            `json:"name,omitempty"`
+	Description string            `json:"description,omitempty"`
+	Price       float64           `json:"price"`
+	ComboItems  []UpdateComboItem `json:"combo_items,omitempty"`
 }
 
 type ComboPrimaryKey struct {

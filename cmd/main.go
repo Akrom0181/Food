@@ -6,12 +6,26 @@ import (
 	"food/config"
 	"food/pkg/logger"
 	"food/service"
+	"net/http"
+	"time"
 
 	postgres "food/storage/postgres"
 	"food/storage/redis"
 
 	"github.com/gin-gonic/gin"
 )
+
+func KeepAlive(cfg *config.Config) {
+	for {
+		_, err := http.Get(fmt.Sprintf("http://localhost%s/ping", cfg.HTTPPort))
+		if err != nil {
+			fmt.Println("Ping yuborishda xatolik:", err)
+		} else {
+			fmt.Println("Ping muvaffaqiyatli yuborildi")
+		}
+		time.Sleep(1 * time.Minute)
+	}
+}
 
 func main() {
 	cfg := config.Load()
@@ -46,10 +60,6 @@ func main() {
 	}
 	defer pgconn.CloseDB()
 
-	// rdb := redis.NewClient(&redis.Options{
-	// 	Addr: RedisAddr,
-	// })
-
 	newRedis := redis.New(cfg)
 	services := service.New(pgconn, log, newRedis)
 
@@ -58,16 +68,16 @@ func main() {
 
 	api.NewApi(r, &cfg, pgconn, log, services)
 
+	go KeepAlive(&cfg)
+
+	r.GET("/ping", func(c *gin.Context) {
+		c.String(200, "pong")
+	})
+	
 	fmt.Println("Listening server", cfg.PostgresHost+cfg.HTTPPort)
 	err = r.Run(cfg.HTTPPort)
-	// err = r.Run(cfg.ServerHost + cfg.HTTPPort)
 	if err != nil {
 		panic(err)
 	}
 
-	// // Check Redis connection
-	// _, err := rdb.Ping(ctx).Result()
-	// if err != nil {
-	//  log.Fatalf("Could not connect to Redis: %v", err)
-	// }
 }

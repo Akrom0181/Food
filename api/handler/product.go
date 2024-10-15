@@ -125,6 +125,7 @@ func (h *Handler) GetProductByID(c *gin.Context) {
 // @Tags 		product
 // @Accept 		json
 // @Produce 	json
+// @Param       category_id query string false "get by category_id"
 // @Param 		search query string false "Search products by name or description"
 // @Param 		page   query uint64 false "Page number"
 // @Param 		limit  query uint64 false "Limit number of results per page"
@@ -135,6 +136,7 @@ func (h *Handler) GetAllProducts(c *gin.Context) {
 	var req = &models.GetAllProductsRequest{}
 
 	req.Search = c.Query("search")
+	req.CategoryId = c.Query("category_id")
 
 	page, err := strconv.ParseUint(c.DefaultQuery("page", "1"), 10, 64)
 	if err != nil {

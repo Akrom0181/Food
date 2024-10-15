@@ -12,14 +12,13 @@ import (
 )
 
 type ProductRepo struct {
-	db *pgxpool.Pool
+	db  *pgxpool.Pool
 	log logger.LoggerI
-
 }
 
 func NewProduct(db *pgxpool.Pool, log logger.LoggerI) ProductRepo {
 	return ProductRepo{
-		db: db,
+		db:  db,
 		log: log,
 	}
 }
@@ -100,25 +99,42 @@ func (p *ProductRepo) GetAll(ctx context.Context, req *models.GetAllProductsRequ
 	var (
 		resp   = &models.GetAllProductsResponse{}
 		filter = ""
+		args   []interface{}
+		argIdx = 1
 	)
 	offset := (req.Page - 1) * req.Limit
 
 	if req.Search != "" {
-		filter += fmt.Sprintf(` WHERE (name ILIKE '%%%v%%') `, req.Search)
+		filter += fmt.Sprintf(" WHERE (name ILIKE $%d) ", argIdx)
+		args = append(args, "%"+req.Search+"%")
+		argIdx++
 	}
 
-	filter += fmt.Sprintf(" OFFSET %v LIMIT %v", offset, req.Limit)
+	if req.CategoryId != "" {
+		if filter == "" {
+			filter += fmt.Sprintf(" WHERE category_id = $%d::uuid ", argIdx)
+		} else {
+			filter += fmt.Sprintf(" AND category_id = $%d::uuid ", argIdx)
+		}
+		args = append(args, req.CategoryId)
+		argIdx++
+	}
+
+	filter += fmt.Sprintf(" OFFSET %d LIMIT %d", offset, req.Limit)
 	fmt.Println("filter: ", filter)
 
-	rows, err := p.db.Query(context.Background(), `SELECT count(id) OVER(),
-        id,
+	query := `SELECT count(id) OVER(),
+		id,
 		category_id,
-        name,
-        description,
-        price,
-        image_url,
-        created_at,
-        updated_at FROM "product"`+filter)
+		name,
+		description,
+		price,
+		image_url,
+		created_at,
+		updated_at 
+		FROM "product"` + filter
+
+	rows, err := p.db.Query(context.Background(), query, args...)
 	if err != nil {
 		return resp, err
 	}

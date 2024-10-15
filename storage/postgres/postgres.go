@@ -12,10 +12,11 @@ import (
 )
 
 type Store struct {
-	Pool  *pgxpool.Pool
-	db    *pgxpool.Pool
-	admin *AdminRepo
-	combo *ComboRepo
+	Pool    *pgxpool.Pool
+	db      *pgxpool.Pool
+	admin   *AdminRepo
+	combo   *ComboRepo
+	payment *PaymentRepo
 	// redis              storage.IRedisStorage
 	log  logger.LoggerI
 	user *UserRepo
@@ -67,6 +68,16 @@ func NewConnectionPostgres(cfg *config.Config) (storage.IStorage, error) {
 		db:  pgxpool,
 		log: logger.NewLogger("app", *loggerLevel),
 	}, nil
+}
+
+func (s *Store) Payment() storage.IPaymentStorage {
+	if s.db == nil {
+		s.payment = &PaymentRepo{
+			db:  s.db,
+			log: s.log,
+		}
+	}
+	return s.payment
 }
 
 func (s *Store) User() storage.IUserStorage {

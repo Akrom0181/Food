@@ -7,9 +7,6 @@ import (
 	"food/pkg/logger"
 	"food/service"
 	"food/storage"
-	"log"
-	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -27,7 +24,6 @@ func NewApi(r *gin.Engine, cfg *config.Config, storage storage.IStorage, logger 
 	h := handler.NewStrg(logger, storage, cfg, service)
 	r.Use(customCORSMiddleware())
 	// r.Use(authMiddleware)
-	StartBackgroundTask()
 	v1 := r.Group("/food/api/v1")
 
 	v1.POST("/uploadfiles", h.UploadFiles)
@@ -43,6 +39,9 @@ func NewApi(r *gin.Engine, cfg *config.Config, storage storage.IStorage, logger 
 	v1.POST("/admin/login", h.AdminLogin)
 
 	v1.POST("/combo", h.CreateCombo)
+	v1.GET("/getallcombos", h.GetAllCombos)
+	v1.GET("/getcombo/:id", h.GetCombo)
+	v1.PUT("/updatecombo/:id", h.UpdateCombo)
 
 	v1.POST("/category", h.CreateCategory)
 	v1.GET("/getbycategory/:id", h.GetCategoryByID)
@@ -115,21 +114,3 @@ func customCORSMiddleware() gin.HandlerFunc {
 
 // 	c.Next()
 // }
-
-func StartBackgroundTask() {
-	ticker := time.NewTicker(1 * time.Minute)
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				// Call the GetAllCategories endpoint periodically
-				resp, err := http.Get("https://food-7u5c.onrender.com/swagger/index.html#/category/getall_category")
-				if err != nil {
-					log.Println("Error running GetAllCategories task:", err)
-				} else {
-					log.Println("GetAllCategories status:", resp.Status)
-				}
-			}
-		}
-	}()
-}

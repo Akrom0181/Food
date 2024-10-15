@@ -15,11 +15,20 @@ type IStorage interface {
 	Banner() IBannerStorage
 	Category() ICategoryStorage
 	Product() IProductStorage
+	Payment() IPaymentStorage
 	Order() IOrderStorage
 	CourierAssignment() ICourierAssignmentStorage
 	Notification() INotificationStorage
 	DeliveryHistory() IDeliveryHistoryStorage
 	Redis() IRedisStorage
+}
+
+type IPaymentStorage interface {
+	Create(context.Context, *models.Payment) (*models.Payment, error)
+	GetByID(ctx context.Context, id string) (*models.Payment, error)
+	GetAll(ctx context.Context, request *models.GetAllPaymentsRequest) (*models.GetAllPaymentsResponse, error)
+	Update(context.Context, *models.Payment) (*models.Payment, error)
+	Delete(context.Context, string) error
 }
 
 type IUserStorage interface {
@@ -35,10 +44,10 @@ type IUserStorage interface {
 
 type IComboStorage interface {
 	Create(context.Context, *models.ComboCreateRequest) (*models.ComboCreateRequest, error)
-	// GetAll(ctx context.Context, request *models.GetAllCombosRequest) (*models.GetAllCombosResponse, error)
-// 	GetByID(ctx context.Context, id string) (*models.Combo, error)
-// 	Update(context.Context, *models.Combo) (*models.Combo, error)
-// 	Delete(context.Context, string) error
+	GetAll(ctx context.Context, request *models.GetAllCombosRequest) (*[]models.ComboCreateRequest, error)
+	GetCombo(ctx context.Context, id string) (*models.ComboCreateRequest, error)
+	Update(ctx context.Context, id string, updatedCombo *models.Combo) (*models.ComboCreateRequest, error)
+	// Delete(context.Context, string) error
 }
 
 type IAdminStorage interface {

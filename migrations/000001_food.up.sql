@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS "order" (
   user_id UUID NOT NULL REFERENCES "user"(id),
   total_price DECIMAL NOT NULL,
   status VARCHAR NOT NULL CHECK (status IN ('pending', 'confirmed', 'picked_up', 'delivered')) DEFAULT 'pending',
-  delivery_status NOT NULL CHECK(delivery_status('olib ketish', 'yetkazib berish'))
+  delivery_status VARCHAR NOT NULL CHECK(delivery_status IN ('olib ketish', 'yetkazib berish'))
   longitude DECIMAL(9,6) NOT NULL,
   latitude DECIMAL(9,6) NOT NULL,
   address_name VARCHAR(255) NOT NULL,
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS "order" (
 );
 
 CREATE TABLE IF NOT EXISTS "payment" (
-  id UUID PRIMARY KEY DEFAULT,
+  id UUID PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES "user"(id),
   order_id UUID NOT NULL REFERENCES "order"(id),
   is_paid BOOLEAN NOT NULL DEFAULT false,
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS "payment" (
 );
 
 CREATE TABLE IF NOT EXISTS "courierassignment" (
-  id UUID PRIMARY KEY DEFAULT,
+  id UUID PRIMARY KEY,
   order_id UUID NOT NULL REFERENCES "order"(id),
   courier_id UUID NOT NULL REFERENCES "user"(id),
   status VARCHAR NOT NULL CHECK (status IN ('assigned', 'picked_up', 'en_route', 'delivered', 'payment_collected')),
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS "notification" (
 );
 
 CREATE TABLE IF NOT EXISTS "deliveryhistory" (
-  id UUID PRIMARY KEY DEFAULT,
+  id UUID PRIMARY KEY,
   courier_id UUID NOT NULL REFERENCES "user"(id),
   order_id UUID NOT NULL REFERENCES "order"(id),
   earnings DECIMAL NOT NULL,
@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS "deliveryhistory" (
 );
 
 CREATE TABLE IF NOT EXISTS "locations" (
-  id UUID PRIMARY KEY DEFAULT,
+  id UUID PRIMARY KEY,
   user_id UUID REFERENCES "user"(id),
   address VARCHAR,
   latitude DECIMAL(10, 8),
@@ -135,7 +135,7 @@ CREATE TABLE IF NOT EXISTS "banner" (
 );
 
 CREATE TABLE IF NOT EXISTS "branch" (
-  id UUID PRIMARY KEY DEFAULT,
+  id UUID PRIMARY KEY,
   name VARCHAR NOT NULL,
   address VARCHAR NOT NULL,
   latitude DECIMAL(10, 8),

@@ -48,8 +48,3 @@ type ComboItemsGetListResponse struct {
 	Count int          `json:"count"`
 	Items []*ComboItem `json:"combo_items"`
 }
-
-// type SwaggerComboItems struct {
-// 	ProductId string `json:"product_id,omitempty"`
-// 	Quantity  int    `json:"quantity,omitempty"`
-// }
