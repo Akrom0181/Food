@@ -11,7 +11,9 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jackc/pgx/v4 v4.18.3
+	github.com/joho/godotenv v1.5.1
 	github.com/redis/go-redis/v9 v9.6.1
+	github.com/spf13/cast v1.7.0
 	github.com/streamingfast/logging v0.0.0-20230608130331-f22c91403091
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
