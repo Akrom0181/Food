@@ -94,7 +94,7 @@ func (h *Handler) CreateCombo(c *gin.Context) {
 // @Param 		   search query string false "Search combos by name or description"
 // @Param 		   page   query uint64 false "Page number"
 // @Param 		   limit  query uint64 false "Limit number of results per page"
-// @Success 	   200 {object} []models.ComboCreateRequest
+// @Success 	   200 {object} Rasponse{data=string} "Success"
 // @Response 	   400 {object} Response{data=string} "Bad Request"
 // @Failure 	   500 {object} Response{data=string} "Server error"
 func (h *Handler) GetAllCombos(c *gin.Context) {
@@ -127,7 +127,7 @@ func (h *Handler) GetAllCombos(c *gin.Context) {
 	}
 
 	h.log.Info("Combos retrieved successfully")
-	c.JSON(http.StatusOK, products)
+	c.JSON(http.StatusOK, Response{Data: products})
 }
 
 // @ID             get_combo
