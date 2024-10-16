@@ -19,9 +19,9 @@ func KeepAlive(cfg *config.Config) {
 	for {
 		_, err := http.Get(fmt.Sprintf("http://localhost%s/ping", cfg.HTTPPort))
 		if err != nil {
-			fmt.Println("Ping yuborishda xatolik:", err)
+			fmt.Println("Error while sending ping:", err)
 		} else {
-			fmt.Println("Ping muvaffaqiyatli yuborildi")
+			fmt.Println("Ping sent successfully")
 		}
 		time.Sleep(1 * time.Minute)
 	}
@@ -73,7 +73,7 @@ func main() {
 	r.GET("/ping", func(c *gin.Context) {
 		c.String(200, "pong")
 	})
-	
+
 	fmt.Println("Listening server", cfg.PostgresHost+cfg.HTTPPort)
 	err = r.Run(cfg.HTTPPort)
 	if err != nil {
