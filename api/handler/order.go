@@ -96,7 +96,7 @@ func (h *Handler) GetOrder(c *gin.Context) {
 	}
 
 	h.log.Info("Order retrieved successfully!")
-	c.JSON(http.StatusOK, order)
+	c.JSON(http.StatusOK, Response{Data: order})
 }
 
 // @ID 			   get_all_orders
@@ -109,7 +109,7 @@ func (h *Handler) GetOrder(c *gin.Context) {
 // @Param 		   search query string false "Search orders by name or description"
 // @Param 		   page   query uint64 false "Page number"
 // @Param 		   limit  query uint64 false "Limit number of results per page"
-// @Success 	   200 {object} []models.OrderCreateRequest
+// @Success 	   200 {object} Response{data=string} "Success"
 // @Response 	   400 {object} Response{data=string} "Bad Request"
 // @Failure 	   500 {object} Response{data=string} "Server error"
 func (h *Handler) GetAllOrders(c *gin.Context) {
@@ -142,7 +142,7 @@ func (h *Handler) GetAllOrders(c *gin.Context) {
 	}
 
 	h.log.Info("Products retrieved successfully")
-	c.JSON(http.StatusOK, products)
+	c.JSON(http.StatusOK, Response{Data: products})
 }
 
 // @ID 			update_order
@@ -154,7 +154,7 @@ func (h *Handler) GetAllOrders(c *gin.Context) {
 // @Produce 	json
 // @Param 		id path string true "Order ID"
 // @Param 		Order body models.OrderUpdateS true "UpdateOrderRequest"
-// @Success 	200 {object} models.OrderCreateRequest
+// @Success 	200 {object} Response{data=string} "Success"
 // @Response 	400 {object} Response{data=string} "Bad Request"
 // @Failure 	500 {object} Response{data=string} "Server error"
 func (h *Handler) UpdateOrder(c *gin.Context) {
@@ -176,7 +176,7 @@ func (h *Handler) UpdateOrder(c *gin.Context) {
 	}
 
 	h.log.Info("Order updated successfully!")
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, Response{Data: resp})
 }
 
 // @ID 			delete_order
@@ -214,7 +214,7 @@ func (h *Handler) DeleteOrder(c *gin.Context) {
 	}
 
 	h.log.Info("Order deleted successfully!")
-	c.JSON(http.StatusOK, id)
+	c.JSON(http.StatusOK, Response{Data: id})
 }
 
 // @ID             change_order_status

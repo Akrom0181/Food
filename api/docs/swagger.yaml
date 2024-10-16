@@ -78,57 +78,6 @@ definitions:
       updated_at:
         type: string
     type: object
-  models.Combo:
-    properties:
-      combo_items:
-        items:
-          $ref: '#/definitions/models.ComboItem'
-        type: array
-      created_at:
-        type: string
-      description:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      price:
-        type: number
-      status:
-        type: string
-      total_price:
-        type: number
-      updated_at:
-        type: string
-    type: object
-  models.ComboCreateRequest:
-    properties:
-      combo:
-        $ref: '#/definitions/models.Combo'
-      items:
-        items:
-          $ref: '#/definitions/models.ComboItem'
-        type: array
-    type: object
-  models.ComboItem:
-    properties:
-      combo_id:
-        type: string
-      created_at:
-        type: string
-      id:
-        type: string
-      price:
-        type: number
-      product_id:
-        type: string
-      quantity:
-        type: integer
-      total_price:
-        type: number
-      updated_at:
-        type: string
-    type: object
   models.ComboUpdateS:
     properties:
       combo_items:
@@ -1508,11 +1457,14 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Success
           schema:
-            items:
-              $ref: '#/definitions/models.ComboCreateRequest'
-            type: array
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
         "400":
           description: Bad Request
           schema:
@@ -1557,11 +1509,14 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Success
           schema:
-            items:
-              $ref: '#/definitions/models.OrderCreateRequest'
-            type: array
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
         "400":
           description: Bad Request
           schema:
@@ -2252,9 +2207,14 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Success
           schema:
-            $ref: '#/definitions/models.OrderCreateRequest'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
         "400":
           description: Bad Request
           schema:
