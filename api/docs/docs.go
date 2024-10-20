@@ -3661,6 +3661,9 @@ const docTemplate = `{
                 },
                 "phone": {
                     "type": "string"
+                },
+                "sex": {
+                    "type": "string"
                 }
             }
         },
@@ -4092,6 +4095,9 @@ const docTemplate = `{
                 },
                 "phone": {
                     "type": "string"
+                },
+                "sex": {
+                    "type": "string"
                 }
             }
         },
@@ -4111,6 +4117,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "phone": {
+                    "type": "string"
+                },
+                "sex": {
                     "type": "string"
                 },
                 "updated_at": {

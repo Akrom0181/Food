@@ -3653,6 +3653,9 @@
                 },
                 "phone": {
                     "type": "string"
+                },
+                "sex": {
+                    "type": "string"
                 }
             }
         },
@@ -4084,6 +4087,9 @@
                 },
                 "phone": {
                     "type": "string"
+                },
+                "sex": {
+                    "type": "string"
                 }
             }
         },
@@ -4103,6 +4109,9 @@
                     "type": "string"
                 },
                 "phone": {
+                    "type": "string"
+                },
+                "sex": {
                     "type": "string"
                 },
                 "updated_at": {
