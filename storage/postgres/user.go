@@ -127,7 +127,7 @@ func (u *UserRepo) Create(ctx context.Context, user *models.User) (*models.User,
 		phone,
 		created_at,
 		updated_at)
-		VALUES($1,$2,$3,$4,$5 CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) 
+		VALUES($1,$2,$3,$4,$5, CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) 
 	`
 
 	_, err := u.db.Exec(context.Background(), query,
