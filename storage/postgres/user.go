@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+
 	// "errors"
 	"fmt"
 	"food/api/models"
@@ -29,6 +30,7 @@ func (c *UserRepo) GetByLogin(ctx context.Context, login string) (models.User, e
 	var (
 		name      sql.NullString
 		phone     sql.NullString
+		sex       sql.NullString
 		email     sql.NullString
 		createdat sql.NullString
 		updatedat sql.NullString
@@ -38,6 +40,7 @@ func (c *UserRepo) GetByLogin(ctx context.Context, login string) (models.User, e
 		id, 
 		name, 
 		phone,
+		sex,
 		email,
 		created_at, 
 		updated_at
@@ -50,6 +53,7 @@ func (c *UserRepo) GetByLogin(ctx context.Context, login string) (models.User, e
 	err := row.Scan(
 		&user.Id,
 		&name,
+		&sex,
 		&phone,
 		&email,
 		&createdat,
@@ -62,6 +66,7 @@ func (c *UserRepo) GetByLogin(ctx context.Context, login string) (models.User, e
 	}
 
 	user.Name = name.String
+	user.Sex = sex.String
 	user.Phone = phone.String
 	user.Email = email.String
 	user.Created_at = createdat.String
@@ -118,16 +123,18 @@ func (u *UserRepo) Create(ctx context.Context, user *models.User) (*models.User,
 		id,
 		email,
 		name,
+		sex,
 		phone,
 		created_at,
 		updated_at)
-		VALUES($1,$2,$3,$4, CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) 
+		VALUES($1,$2,$3,$4,$5 CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) 
 	`
 
 	_, err := u.db.Exec(context.Background(), query,
 		id.String(),
 		user.Email,
 		user.Name,
+		user.Sex,
 		user.Phone,
 	)
 
@@ -138,6 +145,7 @@ func (u *UserRepo) Create(ctx context.Context, user *models.User) (*models.User,
 		Id:         id.String(),
 		Email:      user.Email,
 		Name:       user.Name,
+		Sex:        user.Sex,
 		Phone:      user.Phone,
 		Created_at: user.Created_at,
 		Updated_at: user.Updated_at,
@@ -149,14 +157,16 @@ func (u *UserRepo) Update(ctx context.Context, user *models.User) (*models.User,
 		email=$1,
 		name=$2,
 		phone=$3,
-		role=$4,
+		sex=$4,
+		role=$5,
 		updated_at=CURRENT_TIMESTAMP
-		WHERE id = $5
+		WHERE id = $6
 	`
 	_, err := u.db.Exec(context.Background(), query,
 		user.Name,
 		user.Email,
 		user.Phone,
+		user.Sex,
 		user.Id,
 	)
 	if err != nil {
@@ -165,6 +175,7 @@ func (u *UserRepo) Update(ctx context.Context, user *models.User) (*models.User,
 	return &models.User{
 		Id:         user.Id,
 		Name:       user.Name,
+		Sex:        user.Sex,
 		Email:      user.Email,
 		Phone:      user.Phone,
 		Created_at: user.Created_at,
@@ -189,6 +200,7 @@ func (u *UserRepo) GetAll(ctx context.Context, req *models.GetAllUsersRequest) (
 	rows, err := u.db.Query(context.Background(), `SELECT count(id) OVER(),
         id,
 		name,
+		sex,
         email,
         phone,
         created_at,
@@ -201,6 +213,7 @@ func (u *UserRepo) GetAll(ctx context.Context, req *models.GetAllUsersRequest) (
 		var (
 			user       = models.User{}
 			name       sql.NullString
+			sex        sql.NullString
 			email      sql.NullString
 			phone      sql.NullString
 			created_at sql.NullString
@@ -210,6 +223,7 @@ func (u *UserRepo) GetAll(ctx context.Context, req *models.GetAllUsersRequest) (
 			&resp.Count,
 			&user.Id,
 			&name,
+			&sex,
 			&email,
 			&phone,
 			&created_at,
@@ -220,6 +234,7 @@ func (u *UserRepo) GetAll(ctx context.Context, req *models.GetAllUsersRequest) (
 		resp.Users = append(resp.Users, models.User{
 			Id:         user.Id,
 			Name:       name.String,
+			Sex:        user.Sex,
 			Email:      email.String,
 			Phone:      phone.String,
 			Created_at: created_at.String,
@@ -233,14 +248,16 @@ func (u *UserRepo) GetByID(ctx context.Context, id string) (*models.User, error)
 	var (
 		user       = models.User{}
 		name       sql.NullString
+		sex        sql.NullString
 		email      sql.NullString
 		phone      sql.NullString
 		created_at sql.NullString
 		updated_at sql.NullString
 	)
-	if err := u.db.QueryRow(context.Background(), `SELECT id, name, email, phone, created_at, updated_at FROM "user" WHERE id = $1`, id).Scan(
+	if err := u.db.QueryRow(context.Background(), `SELECT id, name, sex, email, phone, created_at, updated_at FROM "user" WHERE id = $1`, id).Scan(
 		&user.Id,
 		&name,
+		&sex,
 		&email,
 		&phone,
 		&created_at,
@@ -251,6 +268,7 @@ func (u *UserRepo) GetByID(ctx context.Context, id string) (*models.User, error)
 	return &models.User{
 		Id:         user.Id,
 		Name:       name.String,
+		Sex:        sex.String,
 		Email:      email.String,
 		Phone:      phone.String,
 		Created_at: created_at.String,
@@ -271,14 +289,16 @@ func (u *UserRepo) GetByPhone(ctx context.Context, number string) (*models.User,
 	var (
 		admin      = models.User{}
 		name       sql.NullString
+		sex        sql.NullString
 		email      sql.NullString
 		phone      sql.NullString
 		created_at sql.NullString
 		updated_at sql.NullString
 	)
-	if err := u.db.QueryRow(context.Background(), `SELECT id, name, email, phone, created_at, updated_at FROM "user" WHERE phone = $1`, phone).Scan(
+	if err := u.db.QueryRow(context.Background(), `SELECT id, name, sex, email, phone, created_at, updated_at FROM "user" WHERE phone = $1`, phone).Scan(
 		&admin.Id,
 		&name,
+		&sex,
 		&email,
 		&phone,
 		&created_at,
@@ -289,6 +309,7 @@ func (u *UserRepo) GetByPhone(ctx context.Context, number string) (*models.User,
 	return &models.User{
 		Id:         admin.Id,
 		Name:       name.String,
+		Sex:        sex.String,
 		Email:      email.String,
 		Phone:      phone.String,
 		Created_at: created_at.String,

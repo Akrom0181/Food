@@ -3,6 +3,7 @@ package models
 type User struct {
 	Id         string `json:"id"`
 	Name       string `json:"name"`
+	Sex        string `json:"sex"`
 	Email      string `json:"email"`
 	Phone      string `json:"phone"`
 	Created_at string `json:"created_at,omitempty"`
@@ -10,20 +11,23 @@ type User struct {
 }
 
 type CreateUser struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Phone    string `json:"phone"`
+	Name  string `json:"name"`
+	Sex        string `json:"sex"`
+	Email string `json:"email"`
+	Phone string `json:"phone"`
 }
 
 type UpdateUser struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Phone    string `json:"phone"`
+	Name  string `json:"name"`
+	Sex        string `json:"sex"`
+	Email string `json:"email"`
+	Phone string `json:"phone"`
 }
 
 type GetUser struct {
 	Id         string `json:"id"`
 	Name       string `json:"name"`
+	Sex        string `json:"sex"`
 	Email      string `json:"email"`
 	Phone      string `json:"phone"`
 	Created_at string `json:"created_at"`
