@@ -8,7 +8,7 @@ import (
 	"log"
 	"mime/multipart"
 	"net/url"
-	"path/filepath"
+	"os"
 
 	firebase "firebase.google.com/go"
 	"github.com/google/uuid"
@@ -20,7 +20,7 @@ import (
 func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, error) {
 	var resp models.MultipleFileUploadResponse
 
-	filePath := filepath.Join("./", "serviceAccountKey.json")
+	filePath := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
 	opt := option.WithCredentialsFile(filePath)
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
@@ -46,7 +46,7 @@ func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, erro
 			log.Println("Error opening file:", v.Filename, err)
 			return nil, err
 		}
-		defer imageFile.Close() 
+		defer imageFile.Close()
 
 		log.Println("Uploading file:", v.Filename)
 
