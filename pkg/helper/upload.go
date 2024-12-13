@@ -20,36 +20,15 @@ import (
 func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, error) {
 	var resp models.MultipleFileUploadResponse
 
-	// Read the Firebase credentials from the environment variable
-	credsBase64 := os.Getenv("FIREBASE_CREDENTIALS")
-	if credsBase64 == "" {
-		log.Println("FIREBASE_CREDENTIALS environment variable is not set")
+	// Get the Firebase credentials from the environment variable
+	creds := os.Getenv("FIREBASE_CREDENTIALS")
+	if creds == "" {
+		log.Println("FIREBASE_CREDENTIALS environment variable is not set.")
 		return nil, fmt.Errorf("FIREBASE_CREDENTIALS environment variable is not set")
 	}
 
-	// Decode the base64 string
-	creds, err := base64.StdEncoding.DecodeString(credsBase64)
-	if err != nil {
-		log.Println("Error decoding FIREBASE_CREDENTIALS:", err)
-		return nil, err
-	}
-
-	// Create a temporary file for the decoded Firebase credentials
-	tempFile, err := os.CreateTemp("", "firebase-credentials-*.json")
-	if err != nil {
-		log.Println("Error creating temp file for credentials:", err)
-		return nil, err
-	}
-	defer tempFile.Close()
-
-	// Write the decoded credentials to the temp file
-	if _, err := tempFile.Write(creds); err != nil {
-		log.Println("Error writing credentials to temp file:", err)
-		return nil, err
-	}
-
-	// Initialize Firebase app with the credentials file
-	opt := option.WithCredentialsFile(tempFile.Name())
+	// Use the credentials to initialize the Firebase app
+	opt := option.WithCredentialsJSON([]byte(creds))
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
 		log.Println("Firebase App initialization error:", err)
@@ -67,7 +46,6 @@ func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, erro
 		return nil, err
 	}
 
-	// Upload files as before
 	for _, v := range file.File["file"] {
 		id := uuid.New().String()
 		imageFile, err := v.Open()
