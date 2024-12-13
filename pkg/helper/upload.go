@@ -12,6 +12,7 @@ import (
 
 	firebase "firebase.google.com/go"
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 	"google.golang.org/api/option"
 	"google.golang.org/api/storage/v1"
 )
@@ -19,6 +20,11 @@ import (
 // UploadFiles uploads multiple files to Firebase Storage and returns their URLs.
 func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, error) {
 	var resp models.MultipleFileUploadResponse
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Error loading .env file")
+	}
 
 	filePath := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
 	opt := option.WithCredentialsFile(filePath)
