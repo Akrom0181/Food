@@ -8,7 +8,6 @@ import (
 	"log"
 	"mime/multipart"
 	"net/url"
-	"os"
 
 	firebase "firebase.google.com/go"
 	"github.com/google/uuid"
@@ -26,8 +25,7 @@ func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, erro
 		log.Println("Error loading .env file")
 	}
 
-	filePath := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
-	opt := option.WithCredentialsFile(filePath)
+	opt := option.WithCredentialsFile("./serviceAccountKey.json")
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
 		log.Println("Firebase App initialization error:", err)
