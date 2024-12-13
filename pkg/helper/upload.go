@@ -2,35 +2,46 @@ package helper
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"food/api/models"
 	"io"
 	"log"
 	"mime/multipart"
 	"net/url"
+	"os"
 
 	firebase "firebase.google.com/go"
 	"github.com/google/uuid"
-	"github.com/joho/godotenv"
 	"google.golang.org/api/option"
-	"google.golang.org/api/storage/v1"
 )
 
 // UploadFiles uploads multiple files to Firebase Storage and returns their URLs.
 func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, error) {
 	var resp models.MultipleFileUploadResponse
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Error loading .env file")
+	// Get Firebase credentials from the environment variable
+	credsBase64 := os.Getenv("FIREBASE_CREDENTIALS")
+	if credsBase64 == "" {
+		log.Println("FIREBASE_CREDENTIALS environment variable is not set")
+		return nil, fmt.Errorf("FIREBASE_CREDENTIALS environment variable is not set")
 	}
 
-	opt := option.WithCredentialsFile("./serviceAccountKey.json")
+	// Decode the base64-encoded service account key
+	credsJson, err := base64.StdEncoding.DecodeString(credsBase64)
+	if err != nil {
+		log.Println("Failed to decode FIREBASE_CREDENTIALS:", err)
+		return nil, err
+	}
+
+	// Initialize Firebase app with the credentials
+	opt := option.WithCredentialsJSON(credsJson)
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
 		log.Println("Firebase App initialization error:", err)
 		return nil, err
 	}
+
 	client, err := app.Storage(context.Background())
 	if err != nil {
 		log.Println("Firebase Storage client initialization error:", err)
@@ -43,6 +54,7 @@ func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, erro
 		return nil, err
 	}
 
+	// Upload files
 	for _, v := range file.File["file"] {
 		id := uuid.New().String()
 		imageFile, err := v.Open()
@@ -82,25 +94,51 @@ func UploadFiles(file *multipart.Form) (*models.MultipleFileUploadResponse, erro
 	return &resp, nil
 }
 
+// DeleteFile deletes a file from Firebase Storage using the file ID.
 func DeleteFile(id string) error {
-	ctx := context.Background()
-	client, err := storage.NewService(ctx, option.WithCredentialsFile("serviceAccountKey.json"))
+	// Get Firebase credentials from the environment variable
+	credsBase64 := os.Getenv("FIREBASE_CREDENTIALS")
+	if credsBase64 == "" {
+		log.Println("FIREBASE_CREDENTIALS environment variable is not set")
+		return fmt.Errorf("FIREBASE_CREDENTIALS environment variable is not set")
+	}
+
+	// Decode the base64-encoded service account key
+	credsJson, err := base64.StdEncoding.DecodeString(credsBase64)
 	if err != nil {
-		log.Println("Failed to create client:", err)
+		log.Println("Failed to decode FIREBASE_CREDENTIALS:", err)
 		return err
 	}
 
-	// Bucket name and object path to delete
-	bucketName := "food-8ceb4.appspot.com"
-	objectPath := id
-
-	// Delete the object
-	err = client.Objects.Delete(bucketName, objectPath).Do()
+	// Initialize Firebase app with the credentials
+	opt := option.WithCredentialsJSON(credsJson)
+	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
+		log.Println("Firebase App initialization error:", err)
+		return err
+	}
+
+	// Get the Firebase Storage client
+	client, err := app.Storage(context.Background())
+	if err != nil {
+		log.Println("Firebase Storage client initialization error:", err)
+		return err
+	}
+
+	// Get a handle to the Firebase Storage bucket
+	bucketHandle, err := client.Bucket("food-8ceb4.appspot.com")
+	if err != nil {
+		log.Println("Bucket handle error:", err)
+		return err
+	}
+
+	// Delete the file from Firebase Storage
+	objectHandle := bucketHandle.Object(id)
+	if err := objectHandle.Delete(context.Background()); err != nil {
 		log.Println("Failed to delete object:", err)
 		return err
 	}
 
-	fmt.Printf("Object %s deleted successfully from bucket %s\n", objectPath, bucketName)
+	log.Printf("File with ID %s deleted successfully from Firebase Storage.\n", id)
 	return nil
 }
