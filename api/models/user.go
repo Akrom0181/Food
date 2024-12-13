@@ -12,14 +12,14 @@ type User struct {
 
 type CreateUser struct {
 	Name  string `json:"name"`
-	Sex        string `json:"sex"`
+	Sex   string `json:"sex"`
 	Email string `json:"email"`
 	Phone string `json:"phone"`
 }
 
 type UpdateUser struct {
 	Name  string `json:"name"`
-	Sex        string `json:"sex"`
+	Sex   string `json:"sex"`
 	Email string `json:"email"`
 	Phone string `json:"phone"`
 }
