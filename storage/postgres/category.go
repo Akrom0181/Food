@@ -80,7 +80,7 @@ func (c *CategoryRepo) GetAll(ctx context.Context, req *models.GetAllCategoriesR
 	offset := (req.Page - 1) * req.Limit
 
 	if req.Search != "" {
-	    filter += fmt.Sprintf(` WHERE name ILIKE '%%%v%%'`, req.Search)
+		filter += fmt.Sprintf(` WHERE name ILIKE '%%%v%%'`, req.Search)
 	}
 
 	// Order by created_at DESC

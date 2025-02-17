@@ -18,16 +18,16 @@ type AuthInfo struct {
 }
 
 type UserRegisterRequest struct {
-	MobilePhone string `json:"mobile_phone"`
+	Email string `json:"email"`
 }
 
 type UserRegisterConfRequest struct {
-	MobilePhone string `json:"mail"`
+	MobilePhone string `json:"email"`
 	Otp         string `json:"otp"`
 	User        *User  `json:"user"`
 }
 
 type UserLoginPhoneConfirmRequest struct {
-	MobilePhone string `json:"mobile_phone"`
-	SmsCode     string `json:"smscode"`
+	Email   string `json:"email"`
+	SmsCode string `json:"smscode"`
 }

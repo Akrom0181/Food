@@ -14,7 +14,7 @@ import (
 // // UserLogin godoc
 // // @Router       /food/api/v1/user/login [POST]
 // // @Summary      User login
-// // @Description  Login to Khorezm_Shashlik
+// // @Description  Login to food
 // // @Tags         auth
 // // @Accept       json
 // // @Produce      json
@@ -48,7 +48,7 @@ import (
 // UserRegister godoc
 // @Router       /food/api/v1/sendcode [POST]
 // @Summary      User register
-// @Description  Registering to Khorezm_Shashlik
+// @Description  Registering to food
 // @Tags         auth
 // @Accept       json
 // @Produce      json
@@ -66,14 +66,14 @@ func (h *Handler) UserRegister(c *gin.Context) {
 	}
 	fmt.Println("loginReq: ", loginReq)
 
-	if err := check.ValidatePhoneNumber(loginReq.MobilePhone); err != nil {
-		handleResponseLog(c, h.log, "error while validating phone number: "+loginReq.MobilePhone, http.StatusBadRequest, err.Error())
+	if err := check.ValidateEmailAddress(loginReq.Email); err != nil {
+		handleResponseLog(c, h.log, "error while validating phone number: "+loginReq.Email, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	err := h.service.Auth().UserRegister(c.Request.Context(), loginReq)
 	if err != nil {
-		handleResponseLog(c, h.log, "error while sending sms code to "+loginReq.MobilePhone, http.StatusInternalServerError, err)
+		handleResponseLog(c, h.log, "error while sending sms code to "+loginReq.Email, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -83,7 +83,7 @@ func (h *Handler) UserRegister(c *gin.Context) {
 // UserRegisterConfirm godoc
 // @Router       /food/api/v1/user/register [POST]
 // @Summary      User register
-// @Description  Registering to Khorezm_Shashlik
+// @Description  Registering to food
 // @Tags         auth
 // @Accept       json
 // @Produce      json
@@ -122,7 +122,7 @@ func (h *Handler) Register(c *gin.Context) {
 }
 
 // UserLoginByPhoneConfirm godoc
-// @Router       /food/api/v1/user/byphoneconfirm [POST]
+// @Router       /food/api/v1/user/byemailconfirm [POST]
 // @Summary      Customer login by phone confirmation
 // @Description  Login to the system using phone number and OTP
 // @Tags         auth
@@ -145,8 +145,8 @@ func (h *Handler) UserLoginByPhoneConfirm(c *gin.Context) {
 		return
 	}
 
-	if err := check.ValidatePhoneNumber(req.MobilePhone); err != nil {
-		handleResponseLog(c, h.log, "error validating phone number", http.StatusBadRequest, err.Error())
+	if err := check.ValidateEmailAddress(req.Email); err != nil {
+		handleResponseLog(c, h.log, "error validating email number", http.StatusBadRequest, err.Error())
 		return
 	}
 

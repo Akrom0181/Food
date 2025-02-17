@@ -32,7 +32,7 @@ func NewApi(r *gin.Engine, cfg *config.Config, storage storage.IStorage, logger 
 	v1.POST("/sendcode", h.UserRegister)
 	v1.POST("/user/register", h.Register)
 	// v1.POST("/user/login", h.UserLogin)
-	v1.POST("/user/byphoneconfirm", h.UserLoginByPhoneConfirm)
+	v1.POST("/user/byemailconfirm", h.UserLoginByPhoneConfirm)
 
 	// v1.POST("/admin/sendcode", h.AdminRegister)
 	// v1.POST("/admin/verifycode", h.AdminRegisterConfirm)
@@ -62,7 +62,7 @@ func NewApi(r *gin.Engine, cfg *config.Config, storage storage.IStorage, logger 
 	v1.PUT("/updateadmin/:id", h.UpdateAdmin)
 	v1.DELETE("/deleteadmin/:id", h.DeleteAdmin)
 
-	v1.POST("/createuser", h.CreateUser)
+	v1.POST("/create/user", h.CreateUser)
 	v1.GET("/getbyiduser/:id", h.GetUserByID)
 	v1.GET("/getallusers", h.GetAllUsers)
 	v1.PUT("/updateuser/:id", h.UpdateUser)

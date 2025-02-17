@@ -458,7 +458,7 @@ definitions:
     type: object
   models.UserLoginPhoneConfirmRequest:
     properties:
-      mobile_phone:
+      email:
         type: string
       smscode:
         type: string
@@ -476,7 +476,7 @@ definitions:
     type: object
   models.UserRegisterRequest:
     properties:
-      mobile_phone:
+      email:
         type: string
     type: object
 info:
@@ -648,6 +648,47 @@ paths:
       summary: Create Combo
       tags:
       - combo
+  /food/api/v1/create/user:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user
+      operationId: create_user
+      parameters:
+      - description: User
+        in: body
+        name: User
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Create User
+      tags:
+      - user
   /food/api/v1/createadmin:
     post:
       consumes:
@@ -856,47 +897,6 @@ paths:
       summary: Create Product
       tags:
       - product
-  /food/api/v1/createuser:
-    post:
-      consumes:
-      - application/json
-      description: Create a new user
-      operationId: create_user
-      parameters:
-      - description: User
-        in: body
-        name: User
-        required: true
-        schema:
-          $ref: '#/definitions/models.CreateUser'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.User'
-        "400":
-          description: Bad Request
-          schema:
-            allOf:
-            - $ref: '#/definitions/handler.Response'
-            - properties:
-                data:
-                  type: string
-              type: object
-        "500":
-          description: Server error
-          schema:
-            allOf:
-            - $ref: '#/definitions/handler.Response'
-            - properties:
-                data:
-                  type: string
-              type: object
-      summary: Create User
-      tags:
-      - user
   /food/api/v1/deleteadmin/{id}:
     delete:
       consumes:
@@ -2020,7 +2020,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Registering to Khorezm_Shashlik
+      description: Registering to food
       parameters:
       - description: register
         in: body
@@ -2382,7 +2382,7 @@ paths:
       summary: Upload Multiple Files
       tags:
       - Upload File
-  /food/api/v1/user/byphoneconfirm:
+  /food/api/v1/user/byemailconfirm:
     post:
       consumes:
       - application/json
@@ -2420,7 +2420,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Registering to Khorezm_Shashlik
+      description: Registering to food
       parameters:
       - description: register
         in: body

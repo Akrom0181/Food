@@ -1,13 +1,12 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 1. Create tables that have no dependencies
+-- 1. Tables with no dependencies
 CREATE TABLE IF NOT EXISTS "user" (
   id UUID PRIMARY KEY,
   name VARCHAR NOT NULL,
   sex VARCHAR NOT NULL CHECK (sex IN ('male', 'female')),
   email VARCHAR UNIQUE NOT NULL,
   phone VARCHAR UNIQUE NOT NULL,
-  password VARCHAR NOT NULL,
   created_at TIMESTAMP DEFAULT now(),
   updated_at TIMESTAMP DEFAULT now()
 );
@@ -29,6 +28,22 @@ CREATE TABLE IF NOT EXISTS "category" (
   updated_at TIMESTAMP DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS "banner" (
+  image_url VARCHAR,
+  created_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS "branch" (
+  id UUID PRIMARY KEY,
+  name VARCHAR NOT NULL,
+  address VARCHAR NOT NULL,
+  latitude DECIMAL(10, 8),
+  longitude DECIMAL(11, 8),
+  created_at TIMESTAMP DEFAULT now(),
+  updated_at TIMESTAMP DEFAULT now()
+);
+
+-- 2. Tables with dependencies on above tables
 CREATE TABLE IF NOT EXISTS "product" (
   id UUID PRIMARY KEY,
   category_id UUID NOT NULL REFERENCES "category"(id),
@@ -40,6 +55,19 @@ CREATE TABLE IF NOT EXISTS "product" (
   updated_at TIMESTAMP DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS "order" (
+  id UUID PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES "user"(id),
+  total_price DECIMAL NOT NULL,
+  status VARCHAR NOT NULL CHECK (status IN ('pending', 'confirmed', 'picked_up', 'delivered')) DEFAULT 'pending',
+  delivery_status VARCHAR NOT NULL CHECK (delivery_status IN ('olib ketish', 'yetkazib berish')),
+  longitude DECIMAL(9,6) NOT NULL,
+  latitude DECIMAL(9,6) NOT NULL,
+  address_name VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT now(),
+  updated_at TIMESTAMP DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS "orderiteam" (
   id UUID PRIMARY KEY,
   order_id UUID NOT NULL REFERENCES "order"(id),
@@ -47,20 +75,6 @@ CREATE TABLE IF NOT EXISTS "orderiteam" (
   total DECIMAL(10, 2) NOT NULL,
   quantity INT NOT NULL,
   price DECIMAL NOT NULL,
-  created_at TIMESTAMP DEFAULT now(),
-  updated_at TIMESTAMP DEFAULT now()
-);
-
--- 2. Create tables that reference the above tables
-CREATE TABLE IF NOT EXISTS "order" (
-  id UUID PRIMARY KEY,
-  user_id UUID NOT NULL REFERENCES "user"(id),
-  total_price DECIMAL NOT NULL,
-  status VARCHAR NOT NULL CHECK (status IN ('pending', 'confirmed', 'picked_up', 'delivered')) DEFAULT 'pending',
-  delivery_status VARCHAR NOT NULL CHECK(delivery_status IN ('olib ketish', 'yetkazib berish'))
-  longitude DECIMAL(9,6) NOT NULL,
-  latitude DECIMAL(9,6) NOT NULL,
-  address_name VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT now(),
   updated_at TIMESTAMP DEFAULT now()
 );
@@ -109,13 +123,14 @@ CREATE TABLE IF NOT EXISTS "locations" (
   updated_at TIMESTAMP DEFAULT now()
 );
 
+-- 3. Combo tables
 CREATE TABLE IF NOT EXISTS "combo" (
   id UUID PRIMARY KEY,
   name VARCHAR,
   description TEXT,
   price DECIMAL(10, 2),
   created_at TIMESTAMP DEFAULT now(),
-  updated_at TIMESTAMP
+  updated_at TIMESTAMP DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS "combo_items" (
@@ -125,21 +140,6 @@ CREATE TABLE IF NOT EXISTS "combo_items" (
   price DECIMAL(10, 2),
   product_id UUID REFERENCES "product"(id),
   quantity INT DEFAULT 1,
-  created_at TIMESTAMP DEFAULT now(),
-  updated_at TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS "banner" (
-  image_url VARCHAR,
-  created_at TIMESTAMP DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS "branch" (
-  id UUID PRIMARY KEY,
-  name VARCHAR NOT NULL,
-  address VARCHAR NOT NULL,
-  latitude DECIMAL(10, 8),
-  longitude DECIMAL(11, 8),
   created_at TIMESTAMP DEFAULT now(),
   updated_at TIMESTAMP DEFAULT now()
 );

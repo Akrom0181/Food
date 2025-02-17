@@ -14,7 +14,7 @@ import (
 // @Tags Upload File
 // @Accept multipart/form-data
 // @Produce json
-// @Param file formData []file true "File to upload" 
+// @Param file formData []file true "File to upload"
 // @Success 200 {object} Response{data=string} "Success Request"
 // @Failure 400 {object} Response{data=string} "Bad Request"
 // @Failure 500 {object} Response{data=string} "Server error"

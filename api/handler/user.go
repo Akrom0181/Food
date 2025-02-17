@@ -12,7 +12,7 @@ import (
 )
 
 // @ID 			 create_user
-// @Router       /food/api/v1/createuser [POST]
+// @Router       /food/api/v1/create/user [POST]
 // @Summary      Create User
 // @Description  Create a new user
 // @Tags         user
@@ -23,10 +23,9 @@ import (
 // @Response     400 {object} Response{data=string} "Bad Request"
 // @Failure      500 {object} Response{data=string} "Server error"
 func (h *Handler) CreateUser(c *gin.Context) {
-	var(
+	var (
 		user = models.User{}
-	) 
-
+	)
 
 	if err := c.ShouldBindJSON(&user); err != nil {
 		h.log.Error(err.Error() + " : " + "error User Should Bind Json!")

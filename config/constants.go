@@ -15,7 +15,7 @@ const (
 	SmtpServer          = "smtp.gmail.com"
 	SmtpPort            = "587"
 	SmtpUsername        = "akromjonotaboyev@gmail.com"
-	SmtpPassword        = "duriexakadbzalxw"
+	SmtpPassword        = "pqzohqsnbemuwrar"
 )
 
 var SignedKey = []byte("MGJd@Ro]yKoCc)mVY1^c:upz~4rn9Pt!hYd]>c8dt#+%")

@@ -6,8 +6,6 @@ import (
 	"food/config"
 	"food/pkg/logger"
 	"food/service"
-	"net/http"
-	"time"
 
 	postgres "food/storage/postgres"
 	"food/storage/redis"
@@ -15,17 +13,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func KeepAlive(cfg *config.Config) {
-	for {
-		_, err := http.Get(fmt.Sprintf("http://localhost%s/ping", cfg.HTTPPort))
-		if err != nil {
-			fmt.Println("Error while sending ping:", err)
-		} else {
-			fmt.Println("Ping sent successfully")
-		}
-		time.Sleep(1 * time.Minute)
-	}
-}
+// func KeepAlive(cfg *config.Config) {
+// 	for {
+// 		_, err := http.Get(fmt.Sprintf("http://localhost%s/ping", cfg.HTTPPort))
+// 		if err != nil {
+// 			fmt.Println("Error while sending ping:", err)
+// 		} else {
+// 			fmt.Println("Ping sent successfully")
+// 		}
+// 		time.Sleep(1 * time.Minute)
+// 	}
+// }
 
 func main() {
 	cfg := config.Load()
@@ -68,7 +66,7 @@ func main() {
 
 	api.NewApi(r, &cfg, pgconn, log, services)
 
-	go KeepAlive(&cfg)
+	// go KeepAlive(&cfg)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.String(200, "pong")

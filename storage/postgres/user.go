@@ -106,7 +106,7 @@ func (c *UserRepo) CheckPhoneNumberExist(ctx context.Context, id string) (models
 
 	resp := models.User{}
 
-	query := ` SELECT id FROM "user" WHERE phone = $1 `
+	query := ` SELECT id FROM "user" WHERE email = $1 `
 
 	err := c.db.QueryRow(ctx, query, id).Scan(&resp.Id)
 	if err != nil {

@@ -59,8 +59,8 @@ func (a adminAuthService) AdminLogin(ctx context.Context, loginRequest models.Ad
 	return models.AdminLoginResponse{
 		// AccessToken:  accessToken,
 		// RefreshToken: refreshToken,
-		Id:           admin.Id,
-		Phone:        admin.Phone,
+		Id:    admin.Id,
+		Phone: admin.Phone,
 	}, nil
 }
 
@@ -122,7 +122,7 @@ func (a adminAuthService) AdminRegisterConfirm(ctx context.Context, req models.U
 func (a adminAuthService) AdminLoginByPhoneConfirm(ctx context.Context, req models.UserLoginPhoneConfirmRequest) (models.UserLoginResponse, error) {
 	resp := models.UserLoginResponse{}
 
-	storedOTP, err := a.redis.Get(ctx, req.MobilePhone)
+	storedOTP, err := a.redis.Get(ctx, req.Email)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			a.log.Error("OTP code not found or expired", logger.Error(err))
@@ -137,18 +137,18 @@ func (a adminAuthService) AdminLoginByPhoneConfirm(ctx context.Context, req mode
 		return resp, errors.New("noto'g'ri OTP kod")
 	}
 
-	err = a.redis.Del(ctx, req.MobilePhone)
+	err = a.redis.Del(ctx, req.Email)
 	if err != nil {
 		a.log.Error("error while deleting OTP from redis", logger.Error(err))
 		return resp, err
 	}
-	user, err := a.storage.Admin().CheckPhoneNumberExist(ctx, req.MobilePhone)
+	user, err := a.storage.Admin().CheckPhoneNumberExist(ctx, req.Email)
 	if err != nil {
 		a.log.Error("error while getting user by phone number", logger.Error(err))
 		return resp, err
 	}
 
-	resp.Phone = req.MobilePhone
+	resp.Phone = req.Email
 	resp.Id = user.Id
 
 	return resp, nil

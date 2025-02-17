@@ -9,6 +9,7 @@ import (
 	"food/pkg"
 	"food/pkg/jwt"
 	"food/pkg/logger"
+	"food/pkg/smtp"
 
 	// "food/pkg/password"
 
@@ -63,19 +64,19 @@ func (a authService) UserLogin(ctx context.Context, loginRequest models.UserLogi
 }
 
 func (a authService) UserRegister(ctx context.Context, loginRequest models.UserRegisterRequest) error {
-	fmt.Println(" loginRequest.Login: ", loginRequest.MobilePhone)
+	fmt.Println(" loginRequest.Login: ", loginRequest.Email)
 
 	otpCode := pkg.GenerateOTP()
 
-	msg := fmt.Sprintf("iBron ilovasi ro‘yxatdan o‘tish uchun tasdiqlash kodi: %v", otpCode)
+	msg := fmt.Sprintf("food ilovasi ro‘yxatdan o‘tish uchun tasdiqlash kodi: %v", otpCode)
 
-	err := a.redis.SetX(ctx, loginRequest.MobilePhone, otpCode, time.Minute*2)
+	err := a.redis.SetX(ctx, loginRequest.Email, otpCode, time.Minute*3)
 	if err != nil {
 		a.log.Error("error while setting otpCode to redis user register", logger.Error(err))
 		return err
 	}
 
-	err = pkg.SendSms(loginRequest.MobilePhone, msg)
+	err = smtp.SendMail(loginRequest.Email, msg)
 	if err != nil {
 		a.log.Error("error while sending otp code to user register", logger.Error(err))
 		return err
@@ -120,7 +121,7 @@ func (a authService) UserRegisterConfirm(ctx context.Context, req models.UserReg
 func (a authService) UserLoginByPhoneConfirm(ctx context.Context, req models.UserLoginPhoneConfirmRequest) (models.UserLoginResponse, error) {
 	resp := models.UserLoginResponse{}
 
-	storedOTP, err := a.redis.Get(ctx, req.MobilePhone)
+	storedOTP, err := a.redis.Get(ctx, req.Email)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			a.log.Error("OTP code not found or expired", logger.Error(err))
@@ -135,18 +136,18 @@ func (a authService) UserLoginByPhoneConfirm(ctx context.Context, req models.Use
 		return resp, errors.New("noto'g'ri OTP kod")
 	}
 
-	err = a.redis.Del(ctx, req.MobilePhone)
+	err = a.redis.Del(ctx, req.Email)
 	if err != nil {
 		a.log.Error("error while deleting OTP from redis", logger.Error(err))
 		return resp, err
 	}
-	user, err := a.storage.User().CheckPhoneNumberExist(ctx, req.MobilePhone)
+	user, err := a.storage.User().CheckPhoneNumberExist(ctx, req.Email)
 	if err != nil {
 		a.log.Error("error while getting user by phone number", logger.Error(err))
 		return resp, err
 	}
 
-	resp.Phone = req.MobilePhone
+	resp.Phone = req.Email
 	resp.Id = user.Id
 
 	return resp, nil

@@ -293,6 +293,77 @@ const docTemplate = `{
                 }
             }
         },
+        "/food/api/v1/create/user": {
+            "post": {
+                "description": "Create a new user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Create User",
+                "operationId": "create_user",
+                "parameters": [
+                    {
+                        "description": "User",
+                        "name": "User",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/food/api/v1/createadmin": {
             "post": {
                 "description": "Create a new admin",
@@ -616,77 +687,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.Product"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/handler.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/handler.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/food/api/v1/createuser": {
-            "post": {
-                "description": "Create a new user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Create User",
-                "operationId": "create_user",
-                "parameters": [
-                    {
-                        "description": "User",
-                        "name": "User",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.CreateUser"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.User"
                         }
                     },
                     "400": {
@@ -2692,7 +2692,7 @@ const docTemplate = `{
         },
         "/food/api/v1/sendcode": {
             "post": {
-                "description": "Registering to Khorezm_Shashlik",
+                "description": "Registering to food",
                 "consumes": [
                     "application/json"
                 ],
@@ -3316,7 +3316,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/food/api/v1/user/byphoneconfirm": {
+        "/food/api/v1/user/byemailconfirm": {
             "post": {
                 "description": "Login to the system using phone number and OTP",
                 "consumes": [
@@ -3370,7 +3370,7 @@ const docTemplate = `{
         },
         "/food/api/v1/user/register": {
             "post": {
-                "description": "Registering to Khorezm_Shashlik",
+                "description": "Registering to food",
                 "consumes": [
                     "application/json"
                 ],
@@ -4130,7 +4130,7 @@ const docTemplate = `{
         "models.UserLoginPhoneConfirmRequest": {
             "type": "object",
             "properties": {
-                "mobile_phone": {
+                "email": {
                     "type": "string"
                 },
                 "smscode": {
@@ -4158,7 +4158,7 @@ const docTemplate = `{
         "models.UserRegisterRequest": {
             "type": "object",
             "properties": {
-                "mobile_phone": {
+                "email": {
                     "type": "string"
                 }
             }
